@@ -2,6 +2,10 @@
 
 ---
 
+<p align="center">
+  <img src="custom_components/irrisynk/icon.png" alt="Logo IrriSynk" width="120">
+</p>
+
 # IrriSynk
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
