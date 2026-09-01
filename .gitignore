@@ -1,0 +1,21 @@
+# Claude Code settings
+.claude/
+custom_components/.claude/
+
+# Editor
+custom_components/*.code-workspace
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db

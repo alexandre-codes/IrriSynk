@@ -1,0 +1,398 @@
+{
+  "version": 3,
+  "crops": [
+    {
+      "crop_id": "mais_grain",
+      "label": "Mais grain",
+      "label_en": "Grain Corn",
+      "root_depth_cm": 120,
+      "stages": [
+        { "stage_id": "6_8_feuilles", "label": "6-8 feuilles", "label_en": "6-8 Leaves", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 10, "kc": 0.5 },
+        { "stage_id": "8_10_feuilles", "label": "8-10 feuilles", "label_en": "8-10 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.7 },
+        { "stage_id": "10_12_feuilles", "label": "10-12 feuilles", "label_en": "10-12 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.8 },
+        { "stage_id": "12_14_feuilles", "label": "12-14 feuilles", "label_en": "12-14 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 1.0 },
+        { "stage_id": "floraison_male", "label": "Floraison male", "label_en": "Male Flowering", "duration_days": 8, "duration_days_open_field": 8, "duration_days_greenhouse": 6, "kc": 1.1 },
+        { "stage_id": "floraison_femelle_soies_seches", "label": "Floraison femelle / soies seches", "label_en": "Female Flowering / Dry Silks", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 9, "kc": 1.2 },
+        { "stage_id": "grain_laiteux", "label": "Grain laiteux", "label_en": "Milk Stage", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 1.0 },
+        { "stage_id": "grain_laiteux_pateux", "label": "Grain laiteux pateux", "label_en": "Soft Dough Stage", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 0.8 },
+        { "stage_id": "grain_pateux", "label": "Grain pateux", "label_en": "Dough Stage", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 0.5 },
+        { "stage_id": "grain_vitreux", "label": "Grain vitreux", "label_en": "Hard Dough Stage", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.3 }
+      ]
+    },
+    {
+      "crop_id": "mais_doux",
+      "label": "Mais doux",
+      "label_en": "Sweet Corn",
+      "root_depth_cm": 100,
+      "stages": [
+        { "stage_id": "6_8_feuilles", "label": "6-8 feuilles", "label_en": "6-8 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.5 },
+        { "stage_id": "8_10_feuilles", "label": "8-10 feuilles", "label_en": "8-10 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.6 },
+        { "stage_id": "10_12_feuilles", "label": "10-12 feuilles", "label_en": "10-12 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.7 },
+        { "stage_id": "12_14_feuilles", "label": "12-14 feuilles", "label_en": "12-14 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.8 },
+        { "stage_id": "floraison_male", "label": "Floraison male", "label_en": "Male Flowering", "duration_days": 8, "duration_days_open_field": 8, "duration_days_greenhouse": 6, "kc": 0.9 },
+        { "stage_id": "floraison_femelle_soies_seches", "label": "Floraison femelle / soies seches", "label_en": "Female Flowering / Dry Silks", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 9, "kc": 1.0 }
+      ]
+    },
+    {
+      "crop_id": "soja",
+      "label": "Soja",
+      "label_en": "Soybean",
+      "root_depth_cm": 80,
+      "stages": [
+        { "stage_id": "4_noeuds", "label": "4 noeuds", "label_en": "4 Nodes", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.3 },
+        { "stage_id": "6_noeuds", "label": "6 noeuds", "label_en": "6 Nodes", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 10, "kc": 0.5 },
+        { "stage_id": "8_noeuds", "label": "8 noeuds", "label_en": "8 Nodes", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 10, "kc": 0.6 },
+        { "stage_id": "premiere_fleur", "label": "Premiere fleur", "label_en": "First Flower", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.8 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 18, "duration_days_open_field": 18, "duration_days_greenhouse": 14, "kc": 1.0 },
+        { "stage_id": "debut_gousses", "label": "Debut gousses", "label_en": "Pod Set", "duration_days": 18, "duration_days_open_field": 18, "duration_days_greenhouse": 14, "kc": 1.05 },
+        { "stage_id": "remplissage_grains", "label": "Remplissage grains", "label_en": "Grain Fill", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 16, "kc": 0.9 },
+        { "stage_id": "maturite", "label": "Maturite", "label_en": "Maturity", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.5 }
+      ]
+    },
+    {
+      "crop_id": "tournesol",
+      "label": "Tournesol",
+      "label_en": "Sunflower",
+      "root_depth_cm": 100,
+      "stages": [
+        { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.3 },
+        { "stage_id": "developpement_feuilles", "label": "Developpement feuilles", "label_en": "Leaf Development", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 16, "kc": 0.5 },
+        { "stage_id": "bouton_floral", "label": "Bouton floral", "label_en": "Flower Bud", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 10, "kc": 1.0 },
+        { "stage_id": "debut_floraison", "label": "Debut floraison", "label_en": "Early Flowering", "duration_days": 8, "duration_days_open_field": 8, "duration_days_greenhouse": 6, "kc": 1.2 },
+        { "stage_id": "pleine_floraison", "label": "Pleine floraison", "label_en": "Full Flowering", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 1.1 },
+        { "stage_id": "remplissage_graines", "label": "Remplissage graines", "label_en": "Seed Fill", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 16, "kc": 1.0 },
+        { "stage_id": "maturite", "label": "Maturite", "label_en": "Maturity", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 0.6 }
+      ]
+    },
+    {
+      "crop_id": "cereales_hiver",
+      "label": "Cereales d'hiver",
+      "label_en": "Winter Cereals",
+      "root_depth_cm": 120,
+      "stages": [
+        { "stage_id": "tallage", "label": "Tallage", "label_en": "Tillering", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.6 },
+        { "stage_id": "montaison", "label": "Montaison", "label_en": "Stem Extension", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.8 },
+        { "stage_id": "epiaison", "label": "Epiaison", "label_en": "Heading", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 18, "kc": 1.0 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 18, "kc": 1.2 },
+        { "stage_id": "grain_laiteux", "label": "Grain laiteux", "label_en": "Milk Stage", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 18, "kc": 1.1 },
+        { "stage_id": "grain_pateux", "label": "Grain pateux", "label_en": "Dough Stage", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 18, "kc": 0.8 },
+        { "stage_id": "maturite", "label": "Maturite", "label_en": "Maturity", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 18, "kc": 0.5 }
+      ]
+    },
+    {
+      "crop_id": "colza",
+      "label": "Colza",
+      "label_en": "Rapeseed",
+      "root_depth_cm": 100,
+      "stages": [
+        { "stage_id": "automne", "label": "Automne", "label_en": "Autumn", "duration_days": 31, "duration_days_open_field": 31, "duration_days_greenhouse": 31, "kc": 0.5 },
+        { "stage_id": "hiver_debut", "label": "Hiver debut", "label_en": "Early Winter", "duration_days": 60, "duration_days_open_field": 60, "duration_days_greenhouse": 60, "kc": 1.0 },
+        { "stage_id": "montaison", "label": "Montaison", "label_en": "Stem Extension", "duration_days": 60, "duration_days_open_field": 60, "duration_days_greenhouse": 60, "kc": 1.0 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 45, "kc": 1.1 },
+        { "stage_id": "maturation", "label": "Maturation", "label_en": "Ripening", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 45, "kc": 0.9 }
+      ]
+    },
+    {
+      "crop_id": "ail",
+      "label": "Ail",
+      "label_en": "Garlic",
+      "root_depth_cm": 40,
+      "stages": [
+        { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 18, "kc": 0.5 },
+        { "stage_id": "fin_levee", "label": "Fin levee", "label_en": "End of Emergence", "duration_days": 60, "duration_days_open_field": 60, "duration_days_greenhouse": 45, "kc": 0.9 },
+        { "stage_id": "formation_bulbe", "label": "Formation bulbe", "label_en": "Bulb Formation", "duration_days": 50, "duration_days_open_field": 50, "duration_days_greenhouse": 40, "kc": 0.9 },
+        { "stage_id": "grossissement_max", "label": "Grossissement max", "label_en": "Maximum Bulbing", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 20, "kc": 0.6 }
+      ]
+    },
+    {
+      "crop_id": "asperge",
+      "label": "Asperge",
+      "label_en": "Asparagus",
+      "root_depth_cm": 150,
+      "stages": [
+        { "stage_id": "plantation_reprise", "label": "Plantation / reprise", "label_en": "Planting / Establishment", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 0.5 },
+        { "stage_id": "developpement_turions", "label": "Developpement turions", "label_en": "Spear Development", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.7 },
+        { "stage_id": "croissance_des_tiges_fougere", "label": "Croissance des tiges (fougere)", "label_en": "Fern Growth", "duration_days": 60, "duration_days_open_field": 60, "duration_days_greenhouse": 50, "kc": 1.05 },
+        { "stage_id": "repos_vegetatif_senescence", "label": "Repos vegetatif / senescence", "label_en": "Dormancy / Senescence", "duration_days": 120, "duration_days_open_field": 120, "duration_days_greenhouse": 120, "kc": 0.6 }
+      ]
+    },
+    {
+      "crop_id": "aubergine",
+      "label": "Aubergine",
+      "label_en": "Eggplant",
+      "root_depth_cm": 80,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 35, "kc": 0.5 },
+        { "stage_id": "debut_floraison", "label": "Debut floraison", "label_en": "Early Flowering", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.6 },
+        { "stage_id": "croissance_3e_etage", "label": "Croissance 3e etage", "label_en": "3rd Tier Growth", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 35, "kc": 0.9 },
+        { "stage_id": "mi_recolte", "label": "Mi-recolte", "label_en": "Mid-Harvest", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.6 }
+      ]
+    },
+    {
+      "crop_id": "betterave",
+      "label": "Betterave",
+      "label_en": "Beet",
+      "root_depth_cm": 90,
+      "stages": [
+        { "stage_id": "semis", "label": "Semis", "label_en": "Sowing", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.5 },
+        { "stage_id": "j30_apres_semis", "label": "30 jours apres semis", "label_en": "30 days after sowing", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.7 },
+        { "stage_id": "debut_tuberisation", "label": "Debut tuberisation", "label_en": "Root Initiation", "duration_days": 60, "duration_days_open_field": 60, "duration_days_greenhouse": 50, "kc": 1.0 }
+      ]
+    },
+    {
+      "crop_id": "carotte",
+      "label": "Carotte",
+      "label_en": "Carrot",
+      "root_depth_cm": 60,
+      "stages": [
+        { "stage_id": "semis", "label": "Semis", "label_en": "Sowing", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.5 },
+        { "stage_id": "j30_apres_semis", "label": "30 jours apres semis", "label_en": "30 days after sowing", "duration_days": 70, "duration_days_open_field": 70, "duration_days_greenhouse": 55, "kc": 1.0 }
+      ]
+    },
+    {
+      "crop_id": "chou_fleur",
+      "label": "Chou-fleur",
+      "label_en": "Cauliflower",
+      "root_depth_cm": 50,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 0.5 },
+        { "stage_id": "premiere_inflorescence", "label": "Premiere inflorescence", "label_en": "First Inflorescence", "duration_days": 35, "duration_days_open_field": 35, "duration_days_greenhouse": 25, "kc": 1.0 },
+        { "stage_id": "debut_formation_chou", "label": "Debut formation chou", "label_en": "Curd Initiation", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 1.3 }
+      ]
+    },
+    {
+      "crop_id": "concombre",
+      "label": "Concombre",
+      "label_en": "Cucumber",
+      "root_depth_cm": 80,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 7, "kc": 0.5 },
+        { "stage_id": "reprise", "label": "Reprise", "label_en": "Establishment", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.75 },
+        { "stage_id": "debut_floraison", "label": "Debut floraison", "label_en": "Early Flowering", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 1.0 },
+        { "stage_id": "debut_fructification", "label": "Debut fructification", "label_en": "Early Fruiting", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 1.2 }
+      ]
+    },
+    {
+      "crop_id": "courge",
+      "label": "Courge",
+      "label_en": "Squash",
+      "root_depth_cm": 100,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 35, "duration_days_open_field": 35, "duration_days_greenhouse": 28, "kc": 0.5 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 35, "kc": 1.0 },
+        { "stage_id": "mi_recolte", "label": "Mi-recolte", "label_en": "Mid-Harvest", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.7 }
+      ]
+    },
+    {
+      "crop_id": "courgette",
+      "label": "Courgette",
+      "label_en": "Zucchini",
+      "root_depth_cm": 70,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.5 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 1.0 },
+        { "stage_id": "mi_recolte", "label": "Mi-recolte", "label_en": "Mid-Harvest", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.5 }
+      ]
+    },
+    {
+      "crop_id": "epinard",
+      "label": "Epinard",
+      "label_en": "Spinach",
+      "root_depth_cm": 40,
+      "stages": [
+        { "stage_id": "semis", "label": "Semis", "label_en": "Sowing", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 8, "kc": 0.5 },
+        { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 7, "kc": 0.6 },
+        { "stage_id": "deux_feuilles", "label": "2 feuilles", "label_en": "2 Leaves", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 0.8 },
+        { "stage_id": "six_huit_feuilles", "label": "6-8 feuilles", "label_en": "6-8 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 1.0 },
+        { "stage_id": "huit_dix_feuilles", "label": "8-10 feuilles", "label_en": "8-10 Leaves", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 1.2 }
+      ]
+    },
+    {
+      "crop_id": "haricot",
+      "label": "Haricot",
+      "label_en": "Bean",
+      "root_depth_cm": 60,
+      "stages": [
+        { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.5 },
+        { "stage_id": "j30_apres_levee", "label": "30 jours apres levee", "label_en": "30 days after emergence", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.6 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.8 },
+        { "stage_id": "formation_gousses", "label": "Formation gousses", "label_en": "Pod Formation", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 1.0 }
+      ]
+    },
+    {
+      "crop_id": "melon",
+      "label": "Melon",
+      "label_en": "Melon",
+      "root_depth_cm": 100,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 0.4 },
+        { "stage_id": "debut_floraison", "label": "Debut floraison", "label_en": "Early Flowering", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 0.6 },
+        { "stage_id": "nouaison", "label": "Nouaison", "label_en": "Fruit Set", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 1.0 },
+        { "stage_id": "grossissement_fruits", "label": "Grossissement fruits", "label_en": "Fruit Development", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 18, "kc": 0.6 }
+      ]
+    },
+    {
+      "crop_id": "oignon",
+      "label": "Oignon",
+      "label_en": "Onion",
+      "root_depth_cm": 40,
+      "stages": [
+        { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.6 },
+        { "stage_id": "j30_apres_levee", "label": "30 jours apres levee", "label_en": "30 days after emergence", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.8 },
+        { "stage_id": "j60_apres_levee", "label": "60 jours apres levee", "label_en": "60 days after emergence", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 35, "kc": 1.0 },
+        { "stage_id": "debut_maturite", "label": "Debut maturite", "label_en": "Early Maturity", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 18, "kc": 1.1 },
+        { "stage_id": "avant_recolte_20j", "label": "20j avant recolte", "label_en": "20 days before harvest", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 18, "kc": 0.5 }
+      ]
+    },
+    {
+      "crop_id": "poireau",
+      "label": "Poireau",
+      "label_en": "Leek",
+      "root_depth_cm": 50,
+      "stages": [
+        { "stage_id": "reprise_recolte", "label": "Reprise / Recolte", "label_en": "Establishment / Harvest", "duration_days": 120, "duration_days_open_field": 120, "duration_days_greenhouse": 100, "kc": 0.7 }
+      ]
+    },
+    {
+      "crop_id": "pois",
+      "label": "Pois",
+      "label_en": "Pea",
+      "root_depth_cm": 70,
+      "stages": [
+        { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.5 },
+        { "stage_id": "cinq_feuilles", "label": "5 feuilles", "label_en": "5 Leaves", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 0.7 },
+        { "stage_id": "sept_feuilles", "label": "7 feuilles", "label_en": "7 Leaves", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 0.9 },
+        { "stage_id": "neuf_feuilles", "label": "9 feuilles", "label_en": "9 Leaves", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 1.0 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 1.2 }
+      ]
+    },
+    {
+      "crop_id": "poivron",
+      "label": "Poivron",
+      "label_en": "Bell Pepper",
+      "root_depth_cm": 70,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 35, "kc": 0.5 },
+        { "stage_id": "debut_floraison", "label": "Debut floraison", "label_en": "Early Flowering", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.6 },
+        { "stage_id": "croissance_3e_etage", "label": "Croissance 3e etage", "label_en": "3rd Tier Growth", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 35, "kc": 0.7 },
+        { "stage_id": "mi_recolte", "label": "Mi-recolte", "label_en": "Mid-Harvest", "duration_days": 35, "duration_days_open_field": 35, "duration_days_greenhouse": 30, "kc": 0.6 }
+      ]
+    },
+    {
+      "crop_id": "pomme_de_terre",
+      "label": "Pomme de terre",
+      "label_en": "Potato",
+      "root_depth_cm": 50,
+      "stages": [
+        { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.5 },
+        { "stage_id": "croissance", "label": "Croissance", "label_en": "Growth", "duration_days": 50, "duration_days_open_field": 50, "duration_days_greenhouse": 40, "kc": 1.1 },
+        { "stage_id": "fin_tuberisation", "label": "Fin tuberisation", "label_en": "Tuber Bulking", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.8 }
+      ]
+    },
+    {
+      "crop_id": "salade_ete",
+      "label": "Salade d'ete",
+      "label_en": "Summer Lettuce",
+      "root_depth_cm": 30,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.4 },
+        { "stage_id": "croissance_active", "label": "Croissance active", "label_en": "Active Growth", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 20, "kc": 0.7 }
+      ]
+    },
+    {
+      "crop_id": "tomate",
+      "label": "Tomate",
+      "label_en": "Tomato",
+      "root_depth_cm": 100,
+      "stages": [
+        { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 7, "kc": 0.2 },
+        { "stage_id": "reprise", "label": "Reprise", "label_en": "Establishment", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 0.6 },
+        { "stage_id": "floraison_3e_bouquet", "label": "Floraison 3e bouquet", "label_en": "3rd Cluster Flowering", "duration_days": 50, "duration_days_open_field": 50, "duration_days_greenhouse": 40, "kc": 0.9 },
+        { "stage_id": "mi_recolte", "label": "Mi-recolte", "label_en": "Mid-Harvest", "duration_days": 35, "duration_days_open_field": 35, "duration_days_greenhouse": 30, "kc": 0.7 }
+      ]
+    },
+    {
+      "crop_id": "fraise",
+      "label": "Fraise",
+      "label_en": "Strawberry",
+      "root_depth_cm": 25,
+      "stages": [
+        { "stage_id": "depart_vegetation", "label": "Depart vegetation", "label_en": "Vegetation Start", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.4 },
+        { "stage_id": "debut_floraison", "label": "Debut floraison", "label_en": "Early Flowering", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.6 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.9 },
+        { "stage_id": "grossissement_fruits", "label": "Grossissement fruits", "label_en": "Fruit Development", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.7 }
+      ]
+    },
+    {
+      "crop_id": "framboise",
+      "label": "Framboise",
+      "label_en": "Raspberry",
+      "root_depth_cm": 40,
+      "stages": [
+        { "stage_id": "depart_vegetation", "label": "Depart vegetation", "label_en": "Vegetation Start", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.4 },
+        { "stage_id": "debut_floraison", "label": "Debut floraison", "label_en": "Early Flowering", "duration_days": 15, "duration_days_open_field": 15, "duration_days_greenhouse": 12, "kc": 0.6 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.9 },
+        { "stage_id": "grossissement_fruits", "label": "Grossissement fruits", "label_en": "Fruit Development", "duration_days": 35, "duration_days_open_field": 35, "duration_days_greenhouse": 30, "kc": 0.7 }
+      ]
+    },
+    {
+      "crop_id": "pommier",
+      "label": "Pommier",
+      "label_en": "Apple Tree",
+      "root_depth_cm": 150,
+      "stages": [
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 40, "kc": 0.5 },
+        { "stage_id": "developpement_fruits", "label": "Developpement fruits", "label_en": "Fruit Development", "duration_days": 60, "duration_days_open_field": 60, "duration_days_greenhouse": 50, "kc": 0.6 },
+        { "stage_id": "production", "label": "Production", "label_en": "Production", "duration_days": 90, "duration_days_open_field": 90, "duration_days_greenhouse": 80, "kc": 0.8 },
+        { "stage_id": "repos_vegetatif", "label": "Repos vegetatif", "label_en": "Dormancy", "duration_days": 120, "duration_days_open_field": 120, "duration_days_greenhouse": 120, "kc": 0.5 }
+      ]
+    },
+    {
+      "crop_id": "prunier",
+      "label": "Prunier",
+      "label_en": "Plum Tree",
+      "root_depth_cm": 150,
+      "stages": [
+        { "stage_id": "developpement", "label": "Developpement", "label_en": "Development", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 30, "kc": 0.9 },
+        { "stage_id": "maturation", "label": "Maturation", "label_en": "Ripening", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 20, "kc": 0.6 },
+        { "stage_id": "recolte", "label": "Recolte", "label_en": "Harvest", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 20, "kc": 0.5 }
+      ]
+    },
+    {
+      "crop_id": "noisetier",
+      "label": "Noisetier",
+      "label_en": "Hazelnut",
+      "root_depth_cm": 120,
+      "stages": [
+        { "stage_id": "developpement", "label": "Developpement", "label_en": "Development", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 30, "kc": 0.5 },
+        { "stage_id": "grossissement", "label": "Grossissement", "label_en": "Nut Bulking", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 45, "kc": 0.8 },
+        { "stage_id": "recolte", "label": "Recolte", "label_en": "Harvest", "duration_days": 31, "duration_days_open_field": 31, "duration_days_greenhouse": 31, "kc": 0.6 }
+      ]
+    },
+    {
+      "crop_id": "kiwi",
+      "label": "Kiwi",
+      "label_en": "Kiwi",
+      "root_depth_cm": 90,
+      "stages": [
+        { "stage_id": "developpement", "label": "Developpement", "label_en": "Development", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 30, "kc": 0.6 },
+        { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 45, "kc": 1.0 },
+        { "stage_id": "grossissement", "label": "Grossissement", "label_en": "Fruit Bulking", "duration_days": 60, "duration_days_open_field": 60, "duration_days_greenhouse": 60, "kc": 1.5 },
+        { "stage_id": "maturite", "label": "Maturite", "label_en": "Maturity", "duration_days": 60, "duration_days_open_field": 60, "duration_days_greenhouse": 60, "kc": 1.0 }
+      ]
+    },
+    {
+      "crop_id": "tabac",
+      "label": "Tabac",
+      "label_en": "Tobacco",
+      "root_depth_cm": 70,
+      "stages": [
+        { "stage_id": "repiquage", "label": "Repiquage", "label_en": "Transplanting", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.4 },
+        { "stage_id": "croissance_vegetative", "label": "Croissance vegetative", "label_en": "Vegetative Growth", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 0.8 },
+        { "stage_id": "topping_floraison_controlee", "label": "Topping / floraison controlee", "label_en": "Topping / Controlled Flowering", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 1.1 },
+        { "stage_id": "maturation_des_feuilles", "label": "Maturation des feuilles", "label_en": "Leaf Ripening", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.9 },
+        { "stage_id": "sechage_au_champ", "label": "Sechage au champ", "label_en": "Field Curing", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 20, "kc": 0.5 }
+      ]
+    }
+  ]
+}

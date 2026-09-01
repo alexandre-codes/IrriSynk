@@ -1,0 +1,775 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zones",
+        "description": "{nav}\n\nDéfinissez le nom, le nombre de zones et les paramètres généraux.",
+        "data": {
+          "name": "Nom",
+          "zone_count": "Nombre de zones à créer",
+          "kc_catalog_path": "Chemin du catalogue Kc",
+          "latitude": "Latitude (degrés décimaux)"
+        }
+      },
+      "config_meteo": {
+        "title": "Météo",
+        "description": "{nav}\n\nAssociez une entité météo pour le calcul de l'évapotranspiration (ETP).",
+        "data": {
+          "weather_entity_id": "Entité météo",
+          "rain_forecast_sensor_entity_id": "Capteur prévision pluie – optionnel"
+        }
+      },
+      "config_sensors": {
+        "title": "Capteurs",
+        "description": "{nav}\n\nLiez les capteurs de votre station météo locale pour affiner les calculs (optionnel).",
+        "data": {
+          "rain_sensor_entity_id": "Capteur pluie – optionnel",
+          "rain_sensor_mode": "Mode capteur pluie",
+          "wind_sensor_entity_id": "Capteur vent (km/h) – optionnel",
+          "temp_max_sensor_entity_id": "Capteur T° max – optionnel",
+          "temp_min_sensor_entity_id": "Capteur T° min – optionnel",
+          "pressure_sensor_entity_id": "Capteur pression (hPa) – optionnel",
+          "cloud_sensor_entity_id": "Capteur couverture nuageuse (%) – optionnel"
+        }
+      },
+      "config_valves": {
+        "title": "Électrovannes",
+        "description": "{nav}\n\nAssociez une électrovanne (switch ou valve HA) à chaque zone d'irrigation.",
+        "data": {
+          "valve_zone_1": "Zone 1",
+          "valve_zone_2": "Zone 2",
+          "valve_zone_3": "Zone 3",
+          "valve_zone_4": "Zone 4",
+          "valve_zone_5": "Zone 5",
+          "valve_zone_6": "Zone 6",
+          "valve_zone_7": "Zone 7",
+          "valve_zone_8": "Zone 8",
+          "valve_zone_9": "Zone 9",
+          "valve_zone_10": "Zone 10",
+          "valve_zone_11": "Zone 11",
+          "valve_zone_12": "Zone 12",
+          "valve_zone_13": "Zone 13",
+          "valve_zone_14": "Zone 14",
+          "valve_zone_15": "Zone 15",
+          "valve_zone_16": "Zone 16",
+          "valve_zone_17": "Zone 17",
+          "valve_zone_18": "Zone 18",
+          "valve_zone_19": "Zone 19",
+          "valve_zone_20": "Zone 20",
+          "valve_zone_21": "Zone 21",
+          "valve_zone_22": "Zone 22",
+          "valve_zone_23": "Zone 23",
+          "valve_zone_24": "Zone 24",
+          "valve_zone_25": "Zone 25",
+          "valve_zone_26": "Zone 26",
+          "valve_zone_27": "Zone 27",
+          "valve_zone_28": "Zone 28",
+          "valve_zone_29": "Zone 29",
+          "valve_zone_30": "Zone 30",
+          "valve_zone_31": "Zone 31",
+          "valve_zone_32": "Zone 32",
+          "valve_zone_33": "Zone 33",
+          "valve_zone_34": "Zone 34",
+          "valve_zone_35": "Zone 35",
+          "valve_zone_36": "Zone 36",
+          "valve_zone_37": "Zone 37",
+          "valve_zone_38": "Zone 38",
+          "valve_zone_39": "Zone 39",
+          "valve_zone_40": "Zone 40",
+          "valve_zone_41": "Zone 41",
+          "valve_zone_42": "Zone 42",
+          "valve_zone_43": "Zone 43",
+          "valve_zone_44": "Zone 44",
+          "valve_zone_45": "Zone 45",
+          "valve_zone_46": "Zone 46",
+          "valve_zone_47": "Zone 47",
+          "valve_zone_48": "Zone 48",
+          "valve_zone_49": "Zone 49",
+          "valve_zone_50": "Zone 50",
+          "valve_zone_51": "Zone 51",
+          "valve_zone_52": "Zone 52",
+          "valve_zone_53": "Zone 53",
+          "valve_zone_54": "Zone 54",
+          "valve_zone_55": "Zone 55",
+          "valve_zone_56": "Zone 56",
+          "valve_zone_57": "Zone 57",
+          "valve_zone_58": "Zone 58",
+          "valve_zone_59": "Zone 59",
+          "valve_zone_60": "Zone 60",
+          "valve_zone_61": "Zone 61",
+          "valve_zone_62": "Zone 62",
+          "valve_zone_63": "Zone 63",
+          "valve_zone_64": "Zone 64",
+          "valve_zone_65": "Zone 65",
+          "valve_zone_66": "Zone 66",
+          "valve_zone_67": "Zone 67",
+          "valve_zone_68": "Zone 68",
+          "valve_zone_69": "Zone 69",
+          "valve_zone_70": "Zone 70",
+          "valve_zone_71": "Zone 71",
+          "valve_zone_72": "Zone 72",
+          "valve_zone_73": "Zone 73",
+          "valve_zone_74": "Zone 74",
+          "valve_zone_75": "Zone 75",
+          "valve_zone_76": "Zone 76",
+          "valve_zone_77": "Zone 77",
+          "valve_zone_78": "Zone 78",
+          "valve_zone_79": "Zone 79",
+          "valve_zone_80": "Zone 80",
+          "valve_zone_81": "Zone 81",
+          "valve_zone_82": "Zone 82",
+          "valve_zone_83": "Zone 83",
+          "valve_zone_84": "Zone 84",
+          "valve_zone_85": "Zone 85",
+          "valve_zone_86": "Zone 86",
+          "valve_zone_87": "Zone 87",
+          "valve_zone_88": "Zone 88",
+          "valve_zone_89": "Zone 89",
+          "valve_zone_90": "Zone 90",
+          "valve_zone_91": "Zone 91",
+          "valve_zone_92": "Zone 92",
+          "valve_zone_93": "Zone 93",
+          "valve_zone_94": "Zone 94",
+          "valve_zone_95": "Zone 95",
+          "valve_zone_96": "Zone 96",
+          "valve_zone_97": "Zone 97",
+          "valve_zone_98": "Zone 98",
+          "valve_zone_99": "Zone 99",
+          "valve_zone_100": "Zone 100",
+          "valve_zone_101": "Zone 101",
+          "valve_zone_102": "Zone 102",
+          "valve_zone_103": "Zone 103",
+          "valve_zone_104": "Zone 104",
+          "valve_zone_105": "Zone 105",
+          "valve_zone_106": "Zone 106",
+          "valve_zone_107": "Zone 107",
+          "valve_zone_108": "Zone 108",
+          "valve_zone_109": "Zone 109",
+          "valve_zone_110": "Zone 110",
+          "valve_zone_111": "Zone 111",
+          "valve_zone_112": "Zone 112",
+          "valve_zone_113": "Zone 113",
+          "valve_zone_114": "Zone 114",
+          "valve_zone_115": "Zone 115",
+          "valve_zone_116": "Zone 116",
+          "valve_zone_117": "Zone 117",
+          "valve_zone_118": "Zone 118",
+          "valve_zone_119": "Zone 119",
+          "valve_zone_120": "Zone 120",
+          "valve_zone_121": "Zone 121",
+          "valve_zone_122": "Zone 122",
+          "valve_zone_123": "Zone 123",
+          "valve_zone_124": "Zone 124",
+          "valve_zone_125": "Zone 125",
+          "valve_zone_126": "Zone 126",
+          "valve_zone_127": "Zone 127",
+          "valve_zone_128": "Zone 128",
+          "valve_zone_129": "Zone 129",
+          "valve_zone_130": "Zone 130",
+          "valve_zone_131": "Zone 131",
+          "valve_zone_132": "Zone 132",
+          "valve_zone_133": "Zone 133",
+          "valve_zone_134": "Zone 134",
+          "valve_zone_135": "Zone 135",
+          "valve_zone_136": "Zone 136",
+          "valve_zone_137": "Zone 137",
+          "valve_zone_138": "Zone 138",
+          "valve_zone_139": "Zone 139",
+          "valve_zone_140": "Zone 140",
+          "valve_zone_141": "Zone 141",
+          "valve_zone_142": "Zone 142",
+          "valve_zone_143": "Zone 143",
+          "valve_zone_144": "Zone 144",
+          "valve_zone_145": "Zone 145",
+          "valve_zone_146": "Zone 146",
+          "valve_zone_147": "Zone 147",
+          "valve_zone_148": "Zone 148",
+          "valve_zone_149": "Zone 149",
+          "valve_zone_150": "Zone 150",
+          "valve_zone_151": "Zone 151",
+          "valve_zone_152": "Zone 152",
+          "valve_zone_153": "Zone 153",
+          "valve_zone_154": "Zone 154",
+          "valve_zone_155": "Zone 155",
+          "valve_zone_156": "Zone 156",
+          "valve_zone_157": "Zone 157",
+          "valve_zone_158": "Zone 158",
+          "valve_zone_159": "Zone 159",
+          "valve_zone_160": "Zone 160",
+          "valve_zone_161": "Zone 161",
+          "valve_zone_162": "Zone 162",
+          "valve_zone_163": "Zone 163",
+          "valve_zone_164": "Zone 164",
+          "valve_zone_165": "Zone 165",
+          "valve_zone_166": "Zone 166",
+          "valve_zone_167": "Zone 167",
+          "valve_zone_168": "Zone 168",
+          "valve_zone_169": "Zone 169",
+          "valve_zone_170": "Zone 170",
+          "valve_zone_171": "Zone 171",
+          "valve_zone_172": "Zone 172",
+          "valve_zone_173": "Zone 173",
+          "valve_zone_174": "Zone 174",
+          "valve_zone_175": "Zone 175",
+          "valve_zone_176": "Zone 176",
+          "valve_zone_177": "Zone 177",
+          "valve_zone_178": "Zone 178",
+          "valve_zone_179": "Zone 179",
+          "valve_zone_180": "Zone 180",
+          "valve_zone_181": "Zone 181",
+          "valve_zone_182": "Zone 182",
+          "valve_zone_183": "Zone 183",
+          "valve_zone_184": "Zone 184",
+          "valve_zone_185": "Zone 185",
+          "valve_zone_186": "Zone 186",
+          "valve_zone_187": "Zone 187",
+          "valve_zone_188": "Zone 188",
+          "valve_zone_189": "Zone 189",
+          "valve_zone_190": "Zone 190",
+          "valve_zone_191": "Zone 191",
+          "valve_zone_192": "Zone 192",
+          "valve_zone_193": "Zone 193",
+          "valve_zone_194": "Zone 194",
+          "valve_zone_195": "Zone 195",
+          "valve_zone_196": "Zone 196",
+          "valve_zone_197": "Zone 197",
+          "valve_zone_198": "Zone 198",
+          "valve_zone_199": "Zone 199",
+          "valve_zone_200": "Zone 200"
+        }
+      }
+    },
+    "error": {
+      "zones_required": "Au moins une zone est requise."
+    }
+  },
+  "options": {
+    "step": {
+      "zones": {
+        "title": "Zones",
+        "description": "{nav}\n\nModifiez les zones, la latitude et les paramètres généraux.",
+        "data": {
+          "zones": "IDs des zones (séparés par des virgules)",
+          "latitude": "Latitude (degrés décimaux)",
+          "kc_catalog_path": "Chemin du catalogue Kc",
+          "dashboard_language": "Langue du dashboard"
+        }
+      },
+      "meteo": {
+        "title": "Météo",
+        "description": "{nav}\n\nModifiez l'entité météo et le capteur de prévision pluie.",
+        "data": {
+          "weather_entity_id": "Entité météo",
+          "rain_forecast_sensor_entity_id": "Capteur prévision pluie – optionnel"
+        }
+      },
+      "sensors": {
+        "title": "Capteurs",
+        "description": "{nav}\n\nModifiez les capteurs de votre station météo locale.",
+        "data": {
+          "rain_sensor_entity_id": "Capteur pluie – optionnel",
+          "rain_sensor_mode": "Mode capteur pluie",
+          "wind_sensor_entity_id": "Capteur vent (km/h) – optionnel",
+          "temp_max_sensor_entity_id": "Capteur T° max – optionnel",
+          "temp_min_sensor_entity_id": "Capteur T° min – optionnel",
+          "pressure_sensor_entity_id": "Capteur pression (hPa) – optionnel",
+          "cloud_sensor_entity_id": "Capteur couverture nuageuse (%) – optionnel"
+        }
+      },
+      "valves": {
+        "title": "Électrovannes",
+        "description": "{nav}\n\nModifiez les électrovannes associées à chaque zone.",
+        "data": {
+          "valve_zone_1": "Zone 1",
+          "valve_zone_2": "Zone 2",
+          "valve_zone_3": "Zone 3",
+          "valve_zone_4": "Zone 4",
+          "valve_zone_5": "Zone 5",
+          "valve_zone_6": "Zone 6",
+          "valve_zone_7": "Zone 7",
+          "valve_zone_8": "Zone 8",
+          "valve_zone_9": "Zone 9",
+          "valve_zone_10": "Zone 10",
+          "valve_zone_11": "Zone 11",
+          "valve_zone_12": "Zone 12",
+          "valve_zone_13": "Zone 13",
+          "valve_zone_14": "Zone 14",
+          "valve_zone_15": "Zone 15",
+          "valve_zone_16": "Zone 16",
+          "valve_zone_17": "Zone 17",
+          "valve_zone_18": "Zone 18",
+          "valve_zone_19": "Zone 19",
+          "valve_zone_20": "Zone 20",
+          "valve_zone_21": "Zone 21",
+          "valve_zone_22": "Zone 22",
+          "valve_zone_23": "Zone 23",
+          "valve_zone_24": "Zone 24",
+          "valve_zone_25": "Zone 25",
+          "valve_zone_26": "Zone 26",
+          "valve_zone_27": "Zone 27",
+          "valve_zone_28": "Zone 28",
+          "valve_zone_29": "Zone 29",
+          "valve_zone_30": "Zone 30",
+          "valve_zone_31": "Zone 31",
+          "valve_zone_32": "Zone 32",
+          "valve_zone_33": "Zone 33",
+          "valve_zone_34": "Zone 34",
+          "valve_zone_35": "Zone 35",
+          "valve_zone_36": "Zone 36",
+          "valve_zone_37": "Zone 37",
+          "valve_zone_38": "Zone 38",
+          "valve_zone_39": "Zone 39",
+          "valve_zone_40": "Zone 40",
+          "valve_zone_41": "Zone 41",
+          "valve_zone_42": "Zone 42",
+          "valve_zone_43": "Zone 43",
+          "valve_zone_44": "Zone 44",
+          "valve_zone_45": "Zone 45",
+          "valve_zone_46": "Zone 46",
+          "valve_zone_47": "Zone 47",
+          "valve_zone_48": "Zone 48",
+          "valve_zone_49": "Zone 49",
+          "valve_zone_50": "Zone 50",
+          "valve_zone_51": "Zone 51",
+          "valve_zone_52": "Zone 52",
+          "valve_zone_53": "Zone 53",
+          "valve_zone_54": "Zone 54",
+          "valve_zone_55": "Zone 55",
+          "valve_zone_56": "Zone 56",
+          "valve_zone_57": "Zone 57",
+          "valve_zone_58": "Zone 58",
+          "valve_zone_59": "Zone 59",
+          "valve_zone_60": "Zone 60",
+          "valve_zone_61": "Zone 61",
+          "valve_zone_62": "Zone 62",
+          "valve_zone_63": "Zone 63",
+          "valve_zone_64": "Zone 64",
+          "valve_zone_65": "Zone 65",
+          "valve_zone_66": "Zone 66",
+          "valve_zone_67": "Zone 67",
+          "valve_zone_68": "Zone 68",
+          "valve_zone_69": "Zone 69",
+          "valve_zone_70": "Zone 70",
+          "valve_zone_71": "Zone 71",
+          "valve_zone_72": "Zone 72",
+          "valve_zone_73": "Zone 73",
+          "valve_zone_74": "Zone 74",
+          "valve_zone_75": "Zone 75",
+          "valve_zone_76": "Zone 76",
+          "valve_zone_77": "Zone 77",
+          "valve_zone_78": "Zone 78",
+          "valve_zone_79": "Zone 79",
+          "valve_zone_80": "Zone 80",
+          "valve_zone_81": "Zone 81",
+          "valve_zone_82": "Zone 82",
+          "valve_zone_83": "Zone 83",
+          "valve_zone_84": "Zone 84",
+          "valve_zone_85": "Zone 85",
+          "valve_zone_86": "Zone 86",
+          "valve_zone_87": "Zone 87",
+          "valve_zone_88": "Zone 88",
+          "valve_zone_89": "Zone 89",
+          "valve_zone_90": "Zone 90",
+          "valve_zone_91": "Zone 91",
+          "valve_zone_92": "Zone 92",
+          "valve_zone_93": "Zone 93",
+          "valve_zone_94": "Zone 94",
+          "valve_zone_95": "Zone 95",
+          "valve_zone_96": "Zone 96",
+          "valve_zone_97": "Zone 97",
+          "valve_zone_98": "Zone 98",
+          "valve_zone_99": "Zone 99",
+          "valve_zone_100": "Zone 100",
+          "valve_zone_101": "Zone 101",
+          "valve_zone_102": "Zone 102",
+          "valve_zone_103": "Zone 103",
+          "valve_zone_104": "Zone 104",
+          "valve_zone_105": "Zone 105",
+          "valve_zone_106": "Zone 106",
+          "valve_zone_107": "Zone 107",
+          "valve_zone_108": "Zone 108",
+          "valve_zone_109": "Zone 109",
+          "valve_zone_110": "Zone 110",
+          "valve_zone_111": "Zone 111",
+          "valve_zone_112": "Zone 112",
+          "valve_zone_113": "Zone 113",
+          "valve_zone_114": "Zone 114",
+          "valve_zone_115": "Zone 115",
+          "valve_zone_116": "Zone 116",
+          "valve_zone_117": "Zone 117",
+          "valve_zone_118": "Zone 118",
+          "valve_zone_119": "Zone 119",
+          "valve_zone_120": "Zone 120",
+          "valve_zone_121": "Zone 121",
+          "valve_zone_122": "Zone 122",
+          "valve_zone_123": "Zone 123",
+          "valve_zone_124": "Zone 124",
+          "valve_zone_125": "Zone 125",
+          "valve_zone_126": "Zone 126",
+          "valve_zone_127": "Zone 127",
+          "valve_zone_128": "Zone 128",
+          "valve_zone_129": "Zone 129",
+          "valve_zone_130": "Zone 130",
+          "valve_zone_131": "Zone 131",
+          "valve_zone_132": "Zone 132",
+          "valve_zone_133": "Zone 133",
+          "valve_zone_134": "Zone 134",
+          "valve_zone_135": "Zone 135",
+          "valve_zone_136": "Zone 136",
+          "valve_zone_137": "Zone 137",
+          "valve_zone_138": "Zone 138",
+          "valve_zone_139": "Zone 139",
+          "valve_zone_140": "Zone 140",
+          "valve_zone_141": "Zone 141",
+          "valve_zone_142": "Zone 142",
+          "valve_zone_143": "Zone 143",
+          "valve_zone_144": "Zone 144",
+          "valve_zone_145": "Zone 145",
+          "valve_zone_146": "Zone 146",
+          "valve_zone_147": "Zone 147",
+          "valve_zone_148": "Zone 148",
+          "valve_zone_149": "Zone 149",
+          "valve_zone_150": "Zone 150",
+          "valve_zone_151": "Zone 151",
+          "valve_zone_152": "Zone 152",
+          "valve_zone_153": "Zone 153",
+          "valve_zone_154": "Zone 154",
+          "valve_zone_155": "Zone 155",
+          "valve_zone_156": "Zone 156",
+          "valve_zone_157": "Zone 157",
+          "valve_zone_158": "Zone 158",
+          "valve_zone_159": "Zone 159",
+          "valve_zone_160": "Zone 160",
+          "valve_zone_161": "Zone 161",
+          "valve_zone_162": "Zone 162",
+          "valve_zone_163": "Zone 163",
+          "valve_zone_164": "Zone 164",
+          "valve_zone_165": "Zone 165",
+          "valve_zone_166": "Zone 166",
+          "valve_zone_167": "Zone 167",
+          "valve_zone_168": "Zone 168",
+          "valve_zone_169": "Zone 169",
+          "valve_zone_170": "Zone 170",
+          "valve_zone_171": "Zone 171",
+          "valve_zone_172": "Zone 172",
+          "valve_zone_173": "Zone 173",
+          "valve_zone_174": "Zone 174",
+          "valve_zone_175": "Zone 175",
+          "valve_zone_176": "Zone 176",
+          "valve_zone_177": "Zone 177",
+          "valve_zone_178": "Zone 178",
+          "valve_zone_179": "Zone 179",
+          "valve_zone_180": "Zone 180",
+          "valve_zone_181": "Zone 181",
+          "valve_zone_182": "Zone 182",
+          "valve_zone_183": "Zone 183",
+          "valve_zone_184": "Zone 184",
+          "valve_zone_185": "Zone 185",
+          "valve_zone_186": "Zone 186",
+          "valve_zone_187": "Zone 187",
+          "valve_zone_188": "Zone 188",
+          "valve_zone_189": "Zone 189",
+          "valve_zone_190": "Zone 190",
+          "valve_zone_191": "Zone 191",
+          "valve_zone_192": "Zone 192",
+          "valve_zone_193": "Zone 193",
+          "valve_zone_194": "Zone 194",
+          "valve_zone_195": "Zone 195",
+          "valve_zone_196": "Zone 196",
+          "valve_zone_197": "Zone 197",
+          "valve_zone_198": "Zone 198",
+          "valve_zone_199": "Zone 199",
+          "valve_zone_200": "Zone 200"
+        }
+      }
+    }
+  },
+  "selector": {
+    "dashboard_language": {
+      "options": {
+        "auto": "Automatique (langue HA)",
+        "en": "Anglais",
+        "fr": "Français"
+      }
+    },
+    "rain_sensor_mode": {
+      "options": {
+        "cumulative": "Cumulatif (reset à minuit)",
+        "incremental": "Incrémentiel (pluviomètre)"
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "zone_mode": {
+        "name": "Mode",
+        "state": {
+          "manual": "Manuel",
+          "scheduled": "Programmation",
+          "auto": "Automatique"
+        }
+      },
+      "all_zone_mode": {
+        "name": "Mode (toutes zones)",
+        "state": {
+          "mixed": "— Sélectionnez un mode —",
+          "manual": "Manuel",
+          "scheduled": "Programmation",
+          "auto": "Automatique"
+        }
+      },
+      "crop": {
+        "name": "Culture"
+      },
+      "cultivation_mode": {
+        "name": "Mode de culture",
+        "state": {
+          "plein_champ": "Plein champ",
+          "serre_hiver": "Serre Hiver",
+          "serre_printemps": "Serre Printemps",
+          "serre_ete": "Serre Été",
+          "serre_automne": "Serre Automne",
+          "paillage_leger": "Paillage organique léger (5cm)",
+          "paillage_moyen": "Paillage organique moyen (10cm)",
+          "paillage_epais": "Paillage organique épais (15cm)",
+          "toile_film": "Toile tissée ou film plastique",
+          "serre": "Serre (ancien)"
+        }
+      },
+      "soil_type": {
+        "name": "Type de sol",
+        "state": {
+          "sandy":      "Sable",
+          "loamy_sand": "Sable limoneux",
+          "sandy_loam": "Limon sableux",
+          "loam":       "Limon",
+          "silt_loam":  "Limon fin",
+          "clay_loam":  "Limon argileux",
+          "clay":       "Argile"
+        }
+      },
+      "stage_mode": {
+        "name": "Mode de stade",
+        "state": {
+          "manual": "Manuel",
+          "auto_by_days": "Automatique (jours)"
+        }
+      },
+      "stage": {
+        "name": "Stade"
+      },
+      "crop_for_stage": {
+        "name": "Culture à modifier"
+      },
+      "edit_stage_crop": {
+        "name": "Culture (modifier stade)"
+      },
+      "edit_stage_stage": {
+        "name": "Stade à modifier"
+      },
+      "switch_entity_id": {
+        "name": "Électrovanne"
+      },
+      "telegram_chat_id": {
+        "name": "Chat Telegram"
+      }
+    },
+    "date": {
+      "planting_date": {
+        "name": "Date de plantation"
+      }
+    },
+    "time": {
+      "start_time": {
+        "name": "Heure de démarrage"
+      },
+      "cascade_time": {
+        "name": "Heure de départ cascade"
+      }
+    },
+    "text": {
+      "zone_name": {
+        "name": "Nom de la zone"
+      },
+      "cult_mode_name": {
+        "name": "Nom du Mode"
+      },
+      "crop_form_name": {
+        "name": "Nom de la culture"
+      },
+      "stage_form_name": {
+        "name": "Nom du stade"
+      },
+      "edit_stage_name": {
+        "name": "Nouveau nom du stade"
+      }
+    },
+    "sensor": {
+      "et0_daily": {
+        "name": "ETP Journalière"
+      },
+      "kc_current": {
+        "name": "Kc actuel"
+      },
+      "current_stage": {
+        "name": "Stade actuel"
+      },
+      "water_need_mm": {
+        "name": "Besoin en eau"
+      },
+      "recommended_duration_min": {
+        "name": "Durée recommandée"
+      },
+      "effective_duration_min": {
+        "name": "Durée à exécuter"
+      },
+      "effective_rain_mm": {
+        "name": "Pluie efficace"
+      },
+      "irrigation_today_mm": {
+        "name": "Arrosage du jour"
+      },
+      "confidence": {
+        "name": "Confiance"
+      },
+      "soil_water_balance_mm": {
+        "name": "Bilan hydrique J-1"
+      },
+      "soil_capacity_mm": {
+        "name": "Capacité sol (RAW)"
+      },
+      "calc_result_mm_h": {
+        "name": "Débit (mm/m²/h)"
+      }
+    },
+    "button": {
+      "add_zone": {
+        "name": "Ajouter une zone"
+      },
+      "delete_zone": {
+        "name": "Supprimer cette zone"
+      },
+      "reset_stats": {
+        "name": "Remise à zéro"
+      },
+      "recalculate": {
+        "name": "Recalculer"
+      },
+      "all_recalculate": {
+        "name": "Recalculer"
+      },
+      "all_reset_stats": {
+        "name": "Remise à zéro"
+      },
+      "calc_run": {
+        "name": "Calculer"
+      },
+      "add_cult_mode": {
+        "name": "Ajouter le mode"
+      },
+      "delete_cult_mode": {
+        "name": "Supprimer ce mode"
+      },
+      "create_crop": {
+        "name": "Créer la culture"
+      },
+      "add_stage": {
+        "name": "Ajouter le stade"
+      },
+      "delete_crop": {
+        "name": "Supprimer la culture"
+      },
+      "delete_stage": {
+        "name": "Supprimer ce stade"
+      },
+      "save_stage": {
+        "name": "Enregistrer le stade"
+      }
+    },
+    "switch": {
+      "cascade": {
+        "name": "Arrosage en cascade"
+      },
+      "telegram_enabled": {
+        "name": "Activer les alertes"
+      },
+      "telegram_notify_irrigations": {
+        "name": "Arrosages"
+      },
+      "telegram_notify_unavailable": {
+        "name": "Appareils indisponibles"
+      }
+    },
+    "number": {
+      "scheduled_duration_min": {
+        "name": "Durée programmée"
+      },
+      "all_max_duration_min": {
+        "name": "Durée max"
+      },
+      "all_rain_effectiveness_pct": {
+        "name": "Efficacité pluie"
+      },
+      "all_soil_buffer_mm": {
+        "name": "Tampon sol"
+      },
+      "max_duration_min": {
+        "name": "Durée max"
+      },
+      "et0_correction_factor": {
+        "name": "Facteur correctif ETP"
+      },
+      "rain_effectiveness_pct": {
+        "name": "Efficacité pluie"
+      },
+      "soil_buffer_mm": {
+        "name": "Tampon sol"
+      },
+      "flow_mm_h": {
+        "name": "Débit arrosage"
+      },
+      "calc_flow_lh": {
+        "name": "Débit goutteur (L/h)"
+      },
+      "calc_dripper_spacing_cm": {
+        "name": "Espacement entre goutteurs"
+      },
+      "calc_line_count": {
+        "name": "Nombre de lignes"
+      },
+      "calc_line_spacing_cm": {
+        "name": "Espacement entre lignes"
+      },
+      "calc_line_length_m": {
+        "name": "Longueur de ligne"
+      },
+      "calc_zone_width_m": {
+        "name": "Largeur de la zone"
+      },
+      "cult_mode_et0": {
+        "name": "Correcteur ETP"
+      },
+      "crop_form_root_depth": {
+        "name": "Profondeur racinaire (cm)"
+      },
+      "stage_form_kc": {
+        "name": "Coefficient Kc"
+      },
+      "stage_form_duration_open": {
+        "name": "Durée Plein champ (j)"
+      },
+      "stage_form_duration_gh": {
+        "name": "Durée Serre (j)"
+      },
+      "edit_stage_kc": {
+        "name": "Coefficient Kc"
+      },
+      "edit_stage_duration_open": {
+        "name": "Durée Plein champ (j)"
+      },
+      "edit_stage_duration_gh": {
+        "name": "Durée Serre (j)"
+      }
+    }
+  }
+}

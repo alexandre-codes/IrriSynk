@@ -1,0 +1,82 @@
+recalculate_zone:
+  name: Recalculate zone
+  description: Recalculate irrigation recommendations for a single zone.
+  fields:
+    zone_id:
+      required: true
+      selector:
+        text:
+
+recalculate_all:
+  name: Recalculate all zones
+  description: Recalculate irrigation recommendations for all zones.
+
+reload_kc_catalog:
+  name: Reload Kc catalog
+  description: Reload crop stage catalog from configured JSON file.
+
+reorder_zones:
+  name: Reorder zones
+  description: Reorder zones (also determines the cascade sequence).
+  fields:
+    zone_ids:
+      description: Ordered list of zone IDs (e.g. [zone_2, zone_1, zone_3]).
+      example: "[zone_2, zone_1, zone_3]"
+
+add_zones:
+  name: Add zones
+  description: Add one or more zones with auto-generated names (zone_N+1, zone_N+2, …).
+  fields:
+    count:
+      required: true
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 20
+          mode: box
+    entry_id:
+      required: false
+      description: Config entry ID (optional, useful when multiple instances are configured).
+      selector:
+        text:
+
+reorder_cascade_zones:
+  name: Reorder cascade zones
+  description: Reorder the zones within a specific cascade group.
+  fields:
+    cascade_id:
+      required: true
+      description: Cascade group ID (e.g. cascade_1).
+      selector:
+        text:
+    zone_ids:
+      required: true
+      description: Ordered list of zone IDs for this cascade.
+      example: "[zone_1, zone_3, zone_2]"
+
+add_zone_to_cascade:
+  name: Add zone to cascade
+  description: Add a zone to a cascade group (error if already assigned to another cascade).
+  fields:
+    cascade_id:
+      required: true
+      selector:
+        text:
+    zone_id:
+      required: true
+      selector:
+        text:
+
+remove_zone_from_cascade:
+  name: Remove zone from cascade
+  description: Remove a zone from its cascade group and clear its cascade start time.
+  fields:
+    cascade_id:
+      required: true
+      selector:
+        text:
+    zone_id:
+      required: true
+      selector:
+        text:
