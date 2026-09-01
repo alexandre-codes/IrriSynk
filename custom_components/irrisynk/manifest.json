@@ -1,9 +1,10 @@
 {
   "domain": "irrisynk",
   "name": "IrriSynk",
-  "after_dependencies": ["lovelace", "frontend"],
+  "after_dependencies": ["frontend", "lovelace", "recorder"],
   "codeowners": ["@alexandre-codes"],
   "config_flow": true,
+  "dependencies": ["http"],
   "documentation": "https://github.com/alexandre-codes/irrisynk",
   "issue_tracker": "https://github.com/alexandre-codes/irrisynk/issues",
   "integration_type": "service",
