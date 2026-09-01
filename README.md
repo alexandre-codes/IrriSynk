@@ -1,186 +1,190 @@
+🇬🇧 **English** | 🇫🇷 [Français](README.fr.md)
+
+---
+
 # IrriSynk
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
 ![version](https://img.shields.io/badge/version-0.1.0-blue)
 ![HA min version](https://img.shields.io/badge/HA-2024.3%2B-blue)
-![license](https://img.shields.io/badge/licence-GPL--3.0-green)
+![license](https://img.shields.io/badge/license-GPL--3.0-green)
 
-**IrriSynk** est une intégration Home Assistant pour la **gestion intelligente de l'arrosage par électrovannes**.
+**IrriSynk** is a Home Assistant integration for **smart irrigation control via solenoid valves**.
 
-Elle calcule chaque jour, pour chaque zone, la quantité d'eau exacte à apporter selon la méthode scientifique **FAO-56** (Penman-Monteith simplifiée), puis **pilote automatiquement les électrovannes** à l'heure programmée — pour la durée précise calculée ou définie.
+Every day, for each zone, it calculates the exact amount of water needed using the scientific **FAO-56** method (simplified Penman-Monteith), then **automatically drives the solenoid valves** at the scheduled time — for the precise calculated or fixed duration.
 
-Pluie du jour, bilan de la veille, stade de végétation, type de sol, mode de culture : tout est pris en compte. Si la pluie suffit, l'arrosage est annulé. Le surplus ou le déficit s'accumule dans un bilan hydrique cumulatif borné par la réserve facilement utilisable du sol.
+Today's rainfall, yesterday's water balance, growth stage, soil type, cultivation mode: everything is taken into account. If rainfall is sufficient, watering is skipped. Surplus or deficit accumulates in a cumulative water balance, bounded by the soil's readily available water reserve.
 
-> Trois modes par zone — **Manuel**, **Programmé** ou **Auto** —, un mode **cascade** pour enchaîner les zones séquentiellement, et un dashboard Lovelace généré automatiquement pour tout piloter sans toucher au code YAML.
-
----
-
-## Fonctionnalités principales
-
-- [Calcul des besoins en eau (FAO-56)](#calcul-des-besoins-en-eau)
-- [Modèle hydrique du sol (RAW/TAW)](#modèle-hydrique-du-sol)
-- [Pilotage des électrovannes](#pilotage-des-électrovannes)
-- [Trois modes de fonctionnement par zone](#trois-modes-de-fonctionnement-par-zone)
-- [Arrosage en cascade](#arrosage-en-cascade)
-- [Programmation horaire](#programmation-horaire)
-- [Bilan hydrique journalier](#bilan-hydrique-journalier)
-- [Cultures et stades phénologiques](#cultures-et-stades-phénologiques)
-- [Modes de culture](#modes-de-culture)
-- [Dashboard Lovelace automatique](#dashboard-lovelace-automatique)
-- [Autres fonctionnalités](#autres-fonctionnalités)
+> Three modes per zone — **Manual**, **Scheduled** or **Auto** —, a **cascade** mode to chain zones sequentially, and an auto-generated Lovelace dashboard to control everything without touching YAML.
 
 ---
 
-### Calcul des besoins en eau
-- Calcul automatique du besoin en eau par zone selon la formule FAO-56 :  
-  `ET₀ × Kc − Pluie efficace − Arrosage du jour − Bilan hydrique − Tampon sol`
-- Calcul de l'ET₀ depuis une entité météo HA ou des capteurs locaux (température, vent, pression, nébulosité)
-- Bilan hydrique de la veille recalculé à minuit depuis l'historique des capteurs et des électrovannes
-- Support des prévisions de pluie depuis la météo ou un capteur dédié
-- Catalogue de 32 cultures intégré avec coefficients Kc et profondeurs racinaires FAO-56
+## Key Features
 
-### Modèle hydrique du sol
-- **Type de sol** configurable par zone (7 classes FAO-56 : Sable, Sable limoneux, Limon sableux, Limon, Limon fin, Limon argileux, Argile)
-- Calcul de la **Réserve facilement utilisable (RAW)** : `RAW = 0,4 × AWC × profondeur_effective`
-- Profondeur racinaire **progressive** au fil des stades : pondération par durées cumulées de 15 cm (plantation) à la profondeur FAO-56 de la culture
-- Bornes du bilan hydrique **dynamiques** `[−RAW ; +RAW]` — s'adaptent à la culture et au stade courant
-- Capteur **Capacité sol (RAW)** affichant la réserve courante en mm
-- Bouton de **remise à zéro** du bilan hydrique
+- [Water Needs Calculation (FAO-56)](#water-needs-calculation)
+- [Soil Water Model (RAW/TAW)](#soil-water-model)
+- [Solenoid Valve Control](#solenoid-valve-control)
+- [Three Operating Modes per Zone](#three-operating-modes-per-zone)
+- [Cascade Irrigation](#cascade-irrigation)
+- [Time Scheduling](#time-scheduling)
+- [Daily Water Balance](#daily-water-balance)
+- [Crops and Growth Stages](#crops-and-growth-stages)
+- [Cultivation Modes](#cultivation-modes)
+- [Automatic Lovelace Dashboard](#automatic-lovelace-dashboard)
+- [Other Features](#other-features)
 
-### Pilotage des électrovannes
-- Chaque zone est associée à une entité **switch** ou **valve** Home Assistant
-- L'ouverture et la fermeture sont déclenchées automatiquement selon le mode et l'heure programmée
-- Récupération automatique au redémarrage : les arrosages en cours sont re-armés, les arrosages en retard sont stoppés
+---
 
-### Trois modes de fonctionnement par zone
+### Water Needs Calculation
+- Automatic water need calculation per zone using the FAO-56 formula:  
+  `ET₀ × Kc − Effective Rain − Today's Irrigation − Water Balance − Soil Buffer`
+- ET₀ calculated from an HA weather entity or local sensors (temperature, wind, pressure, cloud cover)
+- Previous day's water balance recalculated at midnight from sensor and valve history
+- Rain forecast support from weather entity or a dedicated sensor
+- Built-in catalog of 32 crops with FAO-56 Kc coefficients and root depths
+
+### Soil Water Model
+- **Soil type** configurable per zone (7 FAO-56 classes: Sand, Loamy sand, Sandy loam, Loam, Silt loam, Clay loam, Clay)
+- **Readily Available Water (RAW)** calculation: `RAW = 0.4 × AWC × effective_depth`
+- **Progressive** root depth across growth stages: weighted by cumulative durations, from 15 cm (planting) to the crop's FAO-56 depth
+- **Dynamic** water balance bounds `[−RAW ; +RAW]` — adapt to the current crop and stage
+- **Soil Capacity (RAW)** sensor showing the current reserve in mm
+- **Reset** button for the water balance
+
+### Solenoid Valve Control
+- Each zone is linked to a Home Assistant **switch** or **valve** entity
+- Opening and closing are triggered automatically based on mode and scheduled time
+- Automatic recovery on restart: ongoing irrigation is re-armed, overdue irrigation is stopped
+
+### Three Operating Modes per Zone
 
 | Mode | Description |
 |---|---|
-| **Manuel** | Aucun arrosage automatique — la zone est gérée manuellement |
-| **Programmé** | L'électrovanne s'ouvre à l'heure définie pour une durée fixe |
-| **Auto** | L'électrovanne s'ouvre à l'heure définie pour la durée calculée FAO-56 (nulle si pluie suffisante) |
+| **Manual** | No automatic irrigation — the zone is managed manually |
+| **Scheduled** | The valve opens at the set time for a fixed duration |
+| **Auto** | The valve opens at the set time for the FAO-56 calculated duration (zero if rainfall is sufficient) |
 
-### Arrosage en cascade
-- Un mode **cascade** permet d'arroser toutes les zones éligibles séquentiellement depuis une heure globale
-- Les zones démarrent les unes après les autres avec 1 minute de battement
-- Si une zone se termine en avance, les horaires des zones suivantes sont recalculés dynamiquement
-- Compatible avec les modes Auto et Programmé par zone
+### Cascade Irrigation
+- A **cascade** mode waters all eligible zones sequentially from a single global start time
+- Zones start one after another with a 1-minute gap
+- If a zone finishes early, the schedule of the following zones is recalculated dynamically
+- Compatible with per-zone Auto and Scheduled modes
 
-### Programmation horaire
-- Heure de démarrage configurable **par zone** (mode Auto ou Programmé)
-- Heure de démarrage de la **cascade** globale
-- Le planificateur tourne toutes les minutes et gère arrêts et démarrages précis
+### Time Scheduling
+- Configurable start time **per zone** (Auto or Scheduled mode)
+- Global **cascade** start time
+- The scheduler runs every minute and handles precise starts and stops
 
-### Bilan hydrique journalier
-- Chaque nuit à minuit, le bilan réel de la veille est recalculé :
-  - ET₀ J-1 depuis l'historique des capteurs ou la valeur prévisionnelle
-  - Pluie J-1 depuis l'historique du pluviomètre ou la météo
-  - Arrosage J-1 depuis l'historique du switch/valve de chaque zone
-- Le bilan est borné à `[−RAW ; +RAW]` pour éviter les accumulations irréalistes
-- Un surplus cumulé réduit le besoin du jour ; un déficit l'augmente
+### Daily Water Balance
+- Every night at midnight, the previous day's actual balance is recalculated:
+  - Previous day's ET₀ from sensor history or the forecast value
+  - Previous day's rain from rain gauge history or the weather entity
+  - Previous day's irrigation from each zone's switch/valve history
+- The balance is bounded to `[−RAW ; +RAW]` to avoid unrealistic accumulation
+- A cumulative surplus reduces today's need; a deficit increases it
 
-### Cultures et stades phénologiques
-- Catalogue intégré de **32 cultures** avec Kc FAO-56 par stade et profondeur racinaire (FAO-56, Tableau 22)
-- Sélection manuelle du stade ou calcul automatique par date de plantation
-- Création de cultures personnalisées avec leurs propres stades, coefficients Kc et profondeur racinaire
-- Édition et suppression des stades personnalisés depuis le dashboard
+### Crops and Growth Stages
+- Built-in catalog of **32 crops** with FAO-56 Kc per stage and root depth (FAO-56, Table 22)
+- Manual stage selection or automatic calculation from planting date
+- Create custom crops with their own stages, Kc coefficients and root depth
+- Edit and delete custom stages from the dashboard
 
-### Modes de culture
-- Plein champ, serre (hiver/printemps/été/automne), paillage (léger/moyen/épais), toile/film
-- Facteur de correction ET₀ par mode
-- Création de modes de culture personnalisés avec facteur ET₀ libre
+### Cultivation Modes
+- Open field, greenhouse (winter/spring/summer/autumn), mulching (light/medium/heavy), row cover/film
+- ET₀ correction factor per mode
+- Create custom cultivation modes with a free ET₀ factor
 
-### Dashboard Lovelace automatique
-Le dashboard est généré automatiquement et mis à jour en temps réel. Il comprend **8 onglets** :
+### Automatic Lovelace Dashboard
+The dashboard is auto-generated and updated in real time. It includes **8 tabs**:
 
-| Onglet | Contenu |
+| Tab | Content |
 |---|---|
-| **Accueil** | Vue synthétique des zones : besoins, durée recommandée, état, météo |
-| **Programmation** | Mode de chaque zone, heure de démarrage, durée, cascade, bilan hydrique |
-| **Paramètres** | Configuration par zone : électrovanne, débit, type de sol, culture, stade |
-| **Modes de culture** | Création et suppression de modes personnalisés |
-| **Cultures** | Catalogue des cultures, création/édition/suppression de cultures et stades |
-| **Calculateur** | Calculateur de débit goutte-à-goutte (mm/m²/h) |
-| **Statistiques** | Bilans hydriques, historiques d'arrosage par zone |
-| **Wiki** | Documentation intégrée : formule, algorithme, référence FAO-56 |
+| **Home** | Zone overview: needs, recommended duration, status, weather |
+| **Scheduling** | Mode per zone, start time, duration, cascade, water balance |
+| **Settings** | Per-zone configuration: valve, flow rate, soil type, crop, stage |
+| **Cultivation Modes** | Create and delete custom modes |
+| **Crops** | Crop catalog, create/edit/delete crops and stages |
+| **Calculator** | Drip flow rate calculator (mm/m²/h) |
+| **Statistics** | Water balances, per-zone irrigation history |
+| **Wiki** | Built-in documentation: formula, algorithm, FAO-56 reference |
 
-### Autres fonctionnalités
-- Support multi-zones (extensible via service `add_zones`)
-- Interface en **français** et en **anglais** (selon la langue de Home Assistant)
-- Services Home Assistant dédiés : recalcul, rechargement du catalogue, ajout de zones
-- Persistance complète des états et réglages au redémarrage
+### Other Features
+- Multi-zone support (extensible via the `add_zones` service)
+- Interface in **French** and **English** (follows the Home Assistant language)
+- Dedicated Home Assistant services: recalculation, catalog reload, zone addition
+- Full state and settings persistence across restarts
 
 ---
 
 ## Installation via HACS
 
-1. Ouvrir **HACS** dans Home Assistant
-2. Aller dans **Intégrations** → menu ⋮ → **Dépôts personnalisés**
-3. Ajouter l'URL : `https://github.com/alexandre-codes/irrisynk`  
-   Catégorie : **Intégration**
-4. Rechercher **IrriSynk** et installer
-5. Redémarrer Home Assistant
-6. Aller dans **Paramètres → Intégrations → Ajouter** → rechercher **IrriSynk**
+1. Open **HACS** in Home Assistant
+2. Go to **Integrations** → ⋮ menu → **Custom repositories**
+3. Add the URL: `https://github.com/alexandre-codes/irrisynk`  
+   Category: **Integration**
+4. Search for **IrriSynk** and install
+5. Restart Home Assistant
+6. Go to **Settings → Devices & Services → Add Integration** → search for **IrriSynk**
 
 ---
 
-## Installation manuelle
+## Manual Installation
 
-Copier le dossier `custom_components/irrisynk/` dans le dossier `custom_components/` de votre configuration Home Assistant, puis redémarrer.
+Copy the `custom_components/irrisynk/` folder into the `custom_components/` folder of your Home Assistant configuration, then restart.
 
 ---
 
 ## Configuration
 
-### Paramètres initiaux (Config Flow)
+### Initial Setup (Config Flow)
 
-Lors de l'ajout de l'intégration, saisir :
-- L'**entité météo** Home Assistant à utiliser pour les calculs ET₀ et pluie prévisionnelle
-- Le **nom** de votre installation
-- La **latitude** (pré-remplie depuis HA)
+When adding the integration, provide:
+- The Home Assistant **weather entity** used for ET₀ and rain forecast calculations
+- The **name** of your installation
+- The **latitude** (pre-filled from HA)
 
-### Capteurs locaux optionnels (amélioration de la précision)
+### Optional Local Sensors (improved accuracy)
 
-| Capteur | Description |
+| Sensor | Description |
 |---|---|
-| Température max/min | Calcul ET₀ J-1 depuis mesures réelles |
-| Vitesse du vent | Calcul ET₀ J-1 depuis mesures réelles |
-| Pression atmosphérique | Calcul ET₀ J-1 depuis mesures réelles |
-| Nébulosité | Calcul ET₀ J-1 depuis mesures réelles |
-| Pluviomètre | Pluie réelle J-1 (mode cumulatif ou incrémental) |
-| Prévision pluie | Remplace la pluie prévisionnelle pour le calcul du jour J |
+| Max/min temperature | ET₀ calculation for the previous day from real measurements |
+| Wind speed | ET₀ calculation for the previous day from real measurements |
+| Atmospheric pressure | ET₀ calculation for the previous day from real measurements |
+| Cloud cover | ET₀ calculation for the previous day from real measurements |
+| Rain gauge | Actual previous-day rainfall (cumulative or incremental mode) |
+| Rain forecast | Replaces the forecast rainfall for today's calculation |
 
-Si aucun capteur local n'est configuré, l'ET₀ et la pluie sont issus de la prévision météo.
+If no local sensor is configured, ET₀ and rainfall come from the weather forecast.
 
-### Configuration des zones
+### Zone Configuration
 
-Depuis le dashboard, pour chaque zone :
-- Associer une **entité switch ou valve** (électrovanne)
-- Renseigner le **débit** en mm/h (calculateur intégré)
-- Choisir le **type de sol** (7 classes FAO-56)
-- Définir le **tampon sol** (mm avant déclenchement)
-- Choisir la **culture**, le **stade** (ou la date de plantation pour le mode auto)
-- Sélectionner le **mode de culture**
-- Définir le **mode de fonctionnement** et l'**heure de démarrage**
+From the dashboard, for each zone:
+- Link a **switch or valve entity** (solenoid valve)
+- Enter the **flow rate** in mm/h (built-in calculator)
+- Choose the **soil type** (7 FAO-56 classes)
+- Set the **soil buffer** (mm before triggering)
+- Choose the **crop**, the **stage** (or the planting date for auto mode)
+- Select the **cultivation mode**
+- Set the **operating mode** and **start time**
 
 ---
 
-## Formule de calcul
+## Calculation Formula
 
 ```
-Besoin (mm) = max(0 ; ET₀ × Kc − Pluie efficace − Arrosage du jour − Bilan hydrique − Tampon sol)
-Durée (min) = min(Besoin / Débit × 60 ; Durée max)
+Need (mm) = max(0 ; ET₀ × Kc − Effective Rain − Today's Irrigation − Water Balance − Soil Buffer)
+Duration (min) = min(Need / Flow Rate × 60 ; Max Duration)
 ```
 
-| Terme | Description |
+| Term | Description |
 |---|---|
-| **ET₀** | Évapotranspiration de référence (Penman-Monteith FAO-56) |
-| **Kc** | Coefficient cultural selon la culture et le stade phénologique |
-| **Pluie efficace** | Précipitations × taux d'efficacité (défaut 80 %) |
-| **Arrosage du jour** | Mm déjà apportés aujourd'hui par l'électrovanne |
-| **Bilan hydrique** | Excédent ou déficit cumulatif — borné à `[−RAW ; +RAW]` |
-| **RAW** | Réserve facilement utilisable : `0,4 × AWC × profondeur_racinaire_effective` |
-| **Tampon sol** | Réserve minimale avant déclenchement |
+| **ET₀** | Reference evapotranspiration (FAO-56 Penman-Monteith) |
+| **Kc** | Crop coefficient based on the crop and growth stage |
+| **Effective Rain** | Precipitation × efficiency rate (default 80%) |
+| **Today's Irrigation** | mm already applied today by the valve |
+| **Water Balance** | Cumulative surplus or deficit — bounded to `[−RAW ; +RAW]` |
+| **RAW** | Readily available water: `0.4 × AWC × effective_root_depth` |
+| **Soil Buffer** | Minimum reserve before triggering |
 
 ---
 
@@ -188,21 +192,21 @@ Durée (min) = min(Besoin / Débit × 60 ; Durée max)
 
 | Service | Description |
 |---|---|
-| `irrisynk.recalculate_zone` | Recalcule les recommandations pour une zone |
-| `irrisynk.recalculate_all` | Recalcule toutes les zones |
-| `irrisynk.reload_kc_catalog` | Recharge le catalogue des cultures depuis le fichier JSON |
-| `irrisynk.add_zones` | Ajoute une ou plusieurs zones (nommées zone_N+1, zone_N+2…) |
+| `irrisynk.recalculate_zone` | Recalculates recommendations for a zone |
+| `irrisynk.recalculate_all` | Recalculates all zones |
+| `irrisynk.reload_kc_catalog` | Reloads the crop catalog from the JSON file |
+| `irrisynk.add_zones` | Adds one or more zones (named zone_N+1, zone_N+2…) |
 
 ---
 
-## Prérequis
+## Requirements
 
 - Home Assistant **2024.3+**
-- Une entité météo configurée dans Home Assistant
-- Des entités switch ou valve représentant les électrovannes
+- A weather entity configured in Home Assistant
+- Switch or valve entities representing the solenoid valves
 
 ---
 
-## Licence
+## License
 
-GPL-3.0-or-later — voir [LICENSE](LICENSE)
+GPL-3.0-or-later — see [LICENSE](LICENSE)
