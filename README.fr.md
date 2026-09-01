@@ -3,7 +3,7 @@
 ---
 
 <p align="center">
-  <img src="custom_components/irrisynk/icon.png" alt="Logo IrriSynk" width="120">
+  <img src="logo.png" alt="Logo IrriSynk" width="400">
 </p>
 
 # IrriSynk
