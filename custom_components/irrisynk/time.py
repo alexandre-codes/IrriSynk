@@ -14,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import IrrigationCoordinator
-from .entities.base import IrrigationCascadeEntity, IrrigationCascadesEntity, IrrigationConfigEntity, IrrigationZoneEntity
+from .entities.base import IrrigationCascadeEntity, IrrigationCascadesEntity, IrrigationZoneEntity
 
 try:
     from homeassistant.helpers import entity_registry as er

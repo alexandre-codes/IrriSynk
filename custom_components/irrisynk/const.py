@@ -47,6 +47,9 @@ ZONE_MODE_MIXED = "mixed"
 ZONE_MODES = [ZONE_MODE_MANUAL, ZONE_MODE_SCHEDULED, ZONE_MODE_AUTO]
 ZONE_MODES_ALL = [ZONE_MODE_MIXED, ZONE_MODE_MANUAL, ZONE_MODE_SCHEDULED, ZONE_MODE_AUTO]
 
+# Irrigation frequency (scheduled/auto modes): "1" = every day, "N" = every N days
+FREQUENCY_DAYS_OPTIONS = ["1", "2", "3", "4", "5", "6", "7", "10", "14"]
+
 CULTIVATION_MODE_OPEN_FIELD = "plein_champ"
 
 CULTIVATION_MODES = [

@@ -41,6 +41,9 @@ class IrrigationStore:
             cultivation_mode = raw.get("cultivation_mode", CULTIVATION_MODE_OPEN_FIELD)
             if cultivation_mode == "serre":  # migrate legacy generic greenhouse → serre_ete
                 cultivation_mode = "serre_ete"
+            frequency_anchor_date = (
+                date.fromisoformat(raw["frequency_anchor_date"]) if raw.get("frequency_anchor_date") else None
+            )
             result[zone_id] = ZoneState(
                 zone_id=zone_id,
                 crop_id=raw["crop_id"],
@@ -62,6 +65,8 @@ class IrrigationStore:
                 soil_water_balance_mm=raw.get("soil_water_balance_mm", 0.0),
                 irrigation_end_time=raw.get("irrigation_end_time") or None,
                 soil_type=raw.get("soil_type", "loam"),
+                frequency_days=int(raw.get("frequency_days", 1)),
+                frequency_anchor_date=frequency_anchor_date,
             )
         # Load cascade groups — migrate from legacy single-cascade format if needed
         if "cascades" in payload:
@@ -196,6 +201,10 @@ class IrrigationStore:
                     "soil_water_balance_mm": zone.soil_water_balance_mm,
                     "irrigation_end_time": zone.irrigation_end_time,
                     "soil_type": zone.soil_type,
+                    "frequency_days": zone.frequency_days,
+                    "frequency_anchor_date": (
+                        zone.frequency_anchor_date.isoformat() if zone.frequency_anchor_date else None
+                    ),
                 }
                 for zone_id, zone in zones.items()
             }

@@ -20,12 +20,14 @@ class CascadeMixin:
     """Mixin providing cascade irrigation group management."""
 
     def _cascade_valid_zones(self, cascade) -> list[str]:
-        """Zones in this cascade with a switch configured and not in manual mode."""
+        """Zones in this cascade with a switch configured, not in manual mode, and due today."""
+        today = dt_util.now().date()
         return [
             z for z in cascade.zone_ids
             if z in self.zone_states
             and self.zone_states[z].switch_entity_id
             and self.zone_states[z].zone_mode != ZONE_MODE_MANUAL
+            and self._zone_due_today(self.zone_states[z], today)
         ]
 
     def _write_cascade_times(self, zone_ids: list[str], first_hm: str) -> None:

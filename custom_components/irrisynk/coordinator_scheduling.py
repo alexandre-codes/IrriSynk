@@ -13,7 +13,6 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     DOMAIN,
-    ZONE_MODE_AUTO,
     ZONE_MODE_MANUAL,
     ZONE_MODE_SCHEDULED,
 )
@@ -71,6 +70,8 @@ class SchedulingMixin:
             return
         zone = self.zone_states[zone_id]
         if zone.zone_mode == ZONE_MODE_MANUAL or not zone.start_time_str:
+            return
+        if not self._zone_due_today(zone, dt_util.now().date()):
             return
         # Active irrigation: switch went off unexpectedly → stop and advance cascade
         if zone_id in self._active_irrigations:
@@ -184,6 +185,9 @@ class SchedulingMixin:
             if zone_id in self._active_irrigations:
                 continue
             if not zone.switch_entity_id or not zone.start_time_str:
+                self._pending_start.pop(zone_id, None)
+                continue
+            if not self._zone_due_today(zone, now.date()):
                 self._pending_start.pop(zone_id, None)
                 continue
 

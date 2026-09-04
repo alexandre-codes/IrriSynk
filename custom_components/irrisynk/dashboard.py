@@ -33,7 +33,7 @@ _DASHBOARD_META = {
     "url_path": _DASHBOARD_URL,
     "require_admin": False,
     "show_in_sidebar": True,
-    "icon": "mdi:watering-can",
+    "icon": "irrisynk:logo",
     "title": "IrriSynk",
 }
 
@@ -195,7 +195,8 @@ async def _async_ensure_registered(hass: HomeAssistant) -> None:
                 **_DASHBOARD_META,
                 "mode": "storage",
             })
-            await _async_persist_to_dashboards_store(hass)
+
+        await _async_persist_to_dashboards_store(hass)
 
         if _DASHBOARD_URL not in hass.data.get("frontend_panels", {}):
             await _async_register_sidebar_panel(hass)
@@ -233,15 +234,24 @@ async def _async_register_sidebar_panel(hass: HomeAssistant) -> None:
 
 
 async def _async_persist_to_dashboards_store(hass: HomeAssistant) -> None:
-    """Write our dashboard metadata to lovelace_dashboards store for persistence across restarts."""
+    """Write our dashboard metadata to lovelace_dashboards store for persistence across restarts.
+
+    Also keeps an already-persisted entry in sync with _DASHBOARD_META (e.g. icon
+    changes shipped in an update) since HA reads this file — not our code — to
+    register the sidebar panel on startup.
+    """
     import uuid as _uuid
     try:
         store = Store(hass, 1, "lovelace_dashboards")
         raw = await store.async_load() or {}
         items: list[dict] = list(raw.get("items", []))
-        if any(i.get("url_path") == _DASHBOARD_URL for i in items):
+        existing = next((i for i in items if i.get("url_path") == _DASHBOARD_URL), None)
+        if existing is None:
+            items.append({"id": str(_uuid.uuid4()), **_DASHBOARD_META, "mode": "storage"})
+        elif any(existing.get(k) != v for k, v in _DASHBOARD_META.items()):
+            existing.update(_DASHBOARD_META)
+        else:
             return
-        items.append({"id": str(_uuid.uuid4()), **_DASHBOARD_META, "mode": "storage"})
         await store.async_save({**raw, "items": items})
         _LOGGER.debug("IrriSynk: dashboard metadata persisted to lovelace_dashboards store")
     except Exception as exc:  # noqa: BLE001
@@ -270,7 +280,7 @@ async def _async_notify_manual_setup(hass: HomeAssistant) -> None:
                 "      mode: yaml\n"
                 "      filename: irrisynk_dashboard.yaml\n"
                 "      title: IrriSynk\n"
-                "      icon: mdi:watering-can\n"
+                "      icon: irrisynk:logo\n"
                 "      show_in_sidebar: true\n"
                 "      require_admin: false\n"
                 "```\n"
@@ -423,6 +433,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "ent_et0": "ETP",
         "sec_culture": "Culture",
         "acc_scheduled": "Heure",
+        "acc_next": "Arrosage prévu",
         "acc_duration": "Durée",
         "acc_need": "Besoin",
         "acc_irrigation": "Arrosage du jour",
@@ -439,6 +450,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "cascade_create_btn": "Créer la cascade",
         "cascade_empty": "Aucune cascade. Créez-en une dans le formulaire →",
         "cascade_zone_order_title": "Ordre des zones",
+        "cascade_remove_zone_label": "Retirer",
         "cascade_delete_btn": "Supprimer la cascade",
         "cascade_add_zone_label": "Zone à ajouter",
         "cascade_add_zone_btn": "Ajouter la zone",
@@ -451,7 +463,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "view_settings": "Settings",
         "view_stats": "Statistics",
         "view_calculator": "Calculator",
-        "calc_card_title": "Calculateur débit Goutte à Goutte",
+        "calc_card_title": "Drip Flow Calculator",
         "calc_inputs_section": "Parameters",
         "calc_result_section": "Result",
         "calc_lbl_flow_lh": "Dripper flow rate (L/h)",
@@ -504,6 +516,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "ent_et0": "ET0",
         "sec_culture": "Culture",
         "acc_scheduled": "Time",
+        "acc_next": "Next irrigation",
         "acc_duration": "Duration",
         "acc_need": "Need",
         "acc_irrigation": "Today's irrigation",
@@ -520,6 +533,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "cascade_create_btn": "Create cascade",
         "cascade_empty": "No cascade yet. Create one using the form →",
         "cascade_zone_order_title": "Zone order",
+        "cascade_remove_zone_label": "Remove",
         "cascade_delete_btn": "Delete cascade",
         "cascade_add_zone_label": "Zone to add",
         "cascade_add_zone_btn": "Add zone",
@@ -1284,6 +1298,7 @@ def _telegram_cards(
         "type": "entities",
         "title": lbl["card_config"],
         "show_header_toggle": False,
+        "state_color": False,
         "entities": entities,
     }]
 
@@ -1343,6 +1358,8 @@ def _build_accueil_view(
         tiles: list[dict] = []
         if switch_eid := coordinator.zone_states[zone_id].switch_entity_id:
             tiles.append({"type": "tile", "entity": switch_eid, "name": device_name})
+        if eid := z(zone_id, "next_irrigation"):
+            tiles.append({"type": "tile", "entity": eid, "name": lbl["acc_next"]})
         if eid := z(zone_id, "start_time"):
             tiles.append({"type": "tile", "entity": eid, "name": lbl["acc_scheduled"]})
         if eid := z(zone_id, "effective_duration_min"):
@@ -1413,6 +1430,15 @@ def _build_programmation_view(
             entities.append(item(eid))
         if eid := z(zone_id, "start_time"):
             entities.append(item(eid))
+        if (freq_eid := z(zone_id, "frequency_days")) and (mode_eid := z(zone_id, "zone_mode")):
+            row: dict = {"entity": freq_eid}
+            if label := entity_own_names.get(freq_eid):
+                row["name"] = label
+            entities.append({
+                "type": "conditional",
+                "conditions": [{"condition": "state", "entity": mode_eid, "state": ["scheduled", "auto"]}],
+                "row": row,
+            })
         if (sched_eid := z(zone_id, "scheduled_duration_min")) and (mode_eid := z(zone_id, "zone_mode")):
             row: dict = {"entity": sched_eid}
             if label := entity_own_names.get(sched_eid):
@@ -1870,6 +1896,7 @@ def _build_cascades_view(
             "type": "entities",
             "title": cascade.name,
             "show_header_toggle": False,
+            "state_color": False,
             "entities": card_entities,
         }
 
@@ -1889,6 +1916,7 @@ def _build_cascades_view(
                 "zone_ids": cascade_zones,
                 "zone_names": zone_names_map,
                 "title": lbl["cascade_zone_order_title"],
+                "remove_label": lbl["cascade_remove_zone_label"],
             })
 
         cascade_cards.append({"type": "vertical-stack", "cards": cards})

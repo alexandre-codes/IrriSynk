@@ -12,8 +12,20 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .dashboard import async_update_dashboard
 from .entities.base import IrrigationCascadesEntity, IrrigationCropsEntity, IrrigationCultModesEntity, IrrigationZoneEntity
+
+
+def _get_zone_device(dev_reg, entry_id: str, zone_id: str):
+    """Look up the zone's device entry.
+
+    Uses the newer per-config-entry lookup (HA 2026.8+) when available, since
+    async_get_device(identifiers=...) is deprecated and will stop working in
+    HA 2027.8; falls back to it on older cores that lack the new method.
+    """
+    identifier = (DOMAIN, f"{entry_id}_{zone_id}")
+    if hasattr(dev_reg, "async_get_device_by_identifier"):
+        return dev_reg.async_get_device_by_identifier(identifier, entry_id)
+    return dev_reg.async_get_device(identifiers={identifier})
 
 
 async def async_setup_entry(
@@ -49,22 +61,17 @@ class ZoneDeviceNameText(IrrigationZoneEntity, TextEntity):
     @property
     def native_value(self) -> str:
         dev_reg = dr.async_get(self.hass)
-        device = dev_reg.async_get_device(
-            identifiers={(DOMAIN, f"{self.coordinator.entry.entry_id}_{self.zone_id}")}
-        )
+        device = _get_zone_device(dev_reg, self.coordinator.entry.entry_id, self.zone_id)
         if device:
             return device.name_by_user or device.name or self.zone_id
         return self.zone_id
 
     async def async_set_value(self, value: str) -> None:
         dev_reg = dr.async_get(self.hass)
-        device = dev_reg.async_get_device(
-            identifiers={(DOMAIN, f"{self.coordinator.entry.entry_id}_{self.zone_id}")}
-        )
+        device = _get_zone_device(dev_reg, self.coordinator.entry.entry_id, self.zone_id)
         if device:
             dev_reg.async_update_device(device.id, name_by_user=value.strip() or None)
         self.async_write_ha_state()
-        self.hass.async_create_task(async_update_dashboard(self.hass))
 
 
 class CultModeNameText(IrrigationCultModesEntity, TextEntity):

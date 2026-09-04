@@ -347,36 +347,6 @@ class CropsMixin:
         self._notify_entities()
         await async_update_dashboard(self.hass)
 
-    async def async_update_stage(self, crop_id: str | None = None, stage_id: str | None = None) -> None:
-        """Update an existing stage from edit form inputs (alias for async_submit_stage_form in edit mode)."""
-        from .dashboard import async_update_dashboard
-        crop_id = crop_id or self.forms.stage_edit_crop_id
-        if not crop_id and self.custom_crops:
-            crop_id = self.custom_crops[0].crop_id
-        if not crop_id:
-            return
-        crop = next((c for c in self.custom_crops if c.crop_id == crop_id), None)
-        if not crop:
-            return
-        stage_id = stage_id or self.forms.stage_edit_stage_id
-        if not stage_id and crop.stages:
-            stage_id = crop.stages[0].stage_id
-        if not stage_id:
-            return
-        stage = next((s for s in crop.stages if s.stage_id == stage_id), None)
-        if not stage:
-            return
-        name = self.forms.stage_edit_name.strip() or stage.label
-        if not name:
-            return
-        stage.label = name
-        stage.kc = self.forms.stage_edit_kc
-        stage.duration_days_open_field = self.forms.stage_edit_duration_open
-        stage.duration_days_greenhouse = self.forms.stage_edit_duration_gh
-        await self._async_save()
-        self._notify_entities()
-        await async_update_dashboard(self.hass)
-
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
@@ -407,9 +377,6 @@ class CropsMixin:
         self.forms.stage_edit_kc = stage.kc
         self.forms.stage_edit_duration_open = stage.duration_days_open_field or 0
         self.forms.stage_edit_duration_gh = stage.duration_days_greenhouse or 0
-
-    def _custom_crop_options(self) -> list[str]:
-        return [c.name for c in self.custom_crops]
 
 
 def _humanize_fallback(value: str) -> str:

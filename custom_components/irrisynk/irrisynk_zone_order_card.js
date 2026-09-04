@@ -94,9 +94,11 @@
       const title = this._config.title || '';
       const cascadeMode = this._isCascadeMode();
 
+      const removeLabel = this._config.remove_label || 'Remove';
+
       const items = zoneIds.map((id, i) => {
         const removeBtn = cascadeMode
-          ? `<button class="remove-btn" data-remove="${id}" title="Retirer" aria-label="Retirer">${REMOVE_ICON}</button>`
+          ? `<button class="remove-btn" data-remove="${id}" title="${removeLabel}" aria-label="${removeLabel}">${REMOVE_ICON}</button>`
           : '';
         return `<li data-idx="${i}" data-id="${id}">
           <span class="drag-icon">${DRAG_ICON}</span>

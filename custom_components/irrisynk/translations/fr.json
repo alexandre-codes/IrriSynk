@@ -238,9 +238,6 @@
           "valve_zone_200": "Zone 200"
         }
       }
-    },
-    "error": {
-      "zones_required": "Au moins une zone est requise."
     }
   },
   "options": {
@@ -518,6 +515,20 @@
           "auto": "Automatique"
         }
       },
+      "frequency_days": {
+        "name": "Fréquence",
+        "state": {
+          "1": "Tous les jours",
+          "2": "Tous les 2 jours",
+          "3": "Tous les 3 jours",
+          "4": "Tous les 4 jours",
+          "5": "Tous les 5 jours",
+          "6": "Tous les 6 jours",
+          "7": "Tous les 7 jours",
+          "10": "Tous les 10 jours",
+          "14": "Tous les 14 jours"
+        }
+      },
       "crop": {
         "name": "Culture"
       },
@@ -572,6 +583,9 @@
       },
       "telegram_chat_id": {
         "name": "Chat Telegram"
+      },
+      "cascade_zone_selector": {
+        "name": "Zone à ajouter"
       }
     },
     "date": {
@@ -602,6 +616,9 @@
       },
       "edit_stage_name": {
         "name": "Nouveau nom du stade"
+      },
+      "cascade_form_name": {
+        "name": "Nom de la cascade"
       }
     },
     "sensor": {
@@ -616,6 +633,9 @@
       },
       "water_need_mm": {
         "name": "Besoin en eau"
+      },
+      "next_irrigation": {
+        "name": "Prochain arrosage"
       },
       "recommended_duration_min": {
         "name": "Durée recommandée"
@@ -684,11 +704,20 @@
       },
       "save_stage": {
         "name": "Enregistrer le stade"
+      },
+      "cascade_create": {
+        "name": "Créer la cascade"
+      },
+      "cascade_delete": {
+        "name": "Supprimer la cascade"
+      },
+      "cascade_add_zone": {
+        "name": "Ajouter la zone à la cascade"
       }
     },
     "switch": {
-      "cascade": {
-        "name": "Arrosage en cascade"
+      "cascade_enabled": {
+        "name": "Cascade activée"
       },
       "telegram_enabled": {
         "name": "Activer les alertes"

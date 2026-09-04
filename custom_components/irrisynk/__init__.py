@@ -22,8 +22,10 @@ _LOGGER = logging.getLogger(__name__)
 
 _JS_URL = f"/{DOMAIN}/irrisynk_zone_order_card.js"
 _JS_FILE = Path(__file__).parent / "irrisynk_zone_order_card.js"
-# v2: forces re-registration this session to migrate "module" → "js" resource type
-_FRONTEND_KEY = f"{DOMAIN}_frontend_v2"
+_ICONS_JS_URL = f"/{DOMAIN}/irrisynk_icons.js"
+_ICONS_JS_FILE = Path(__file__).parent / "irrisynk_icons.js"
+# v3: forces re-registration this session to add the custom sidebar-icon script
+_FRONTEND_KEY = f"{DOMAIN}_frontend_v3"
 
 
 async def _async_register_frontend(hass: HomeAssistant) -> None:
@@ -32,23 +34,30 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         return
     hass.data[_FRONTEND_KEY] = True
 
-    # Serve the static file
+    # Serve the static files
     try:
         from homeassistant.components.http import StaticPathConfig  # type: ignore[import]
         await hass.http.async_register_static_paths([
-            StaticPathConfig(_JS_URL, str(_JS_FILE), cache_headers=False)
+            StaticPathConfig(_JS_URL, str(_JS_FILE), cache_headers=False),
+            StaticPathConfig(_ICONS_JS_URL, str(_ICONS_JS_FILE), cache_headers=False),
         ])
     except Exception:
         try:
             hass.http.register_static_path(_JS_URL, str(_JS_FILE), cache_headers=False)
+            hass.http.register_static_path(_ICONS_JS_URL, str(_ICONS_JS_FILE), cache_headers=False)
         except Exception:
-            _LOGGER.warning("IrriSynk: could not register static path for zone-order JS card")
+            _LOGGER.warning("IrriSynk: could not register static paths for JS assets")
 
     # 1. Frontend HTML injection — es5=True loads as a classic <script> (synchronous),
     #    not type="module" (deferred), so the custom element is defined before any render.
     try:
         from homeassistant.components.frontend import add_extra_js_url
         add_extra_js_url(hass, _JS_URL, es5=True)
+        # Registers window.customIcons.irrisynk so "irrisynk:logo" resolves on every
+        # page (sidebar included) — a Lovelace resource wouldn't load outside a dashboard.
+        # es5=False -> unconditional `import(url)`, same pattern HACS uses for its own
+        # icon set. es5=True is skipped entirely on modern browsers (window.latestJS).
+        add_extra_js_url(hass, _ICONS_JS_URL)
     except Exception as exc:
         _LOGGER.warning("IrriSynk JS: add_extra_js_url failed: %s", exc)
 

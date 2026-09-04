@@ -11,7 +11,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, SOIL_TYPES, STAGE_MODES, ZONE_MODE_MIXED, ZONE_MODES, ZONE_MODES_ALL
+from .const import DOMAIN, FREQUENCY_DAYS_OPTIONS, SOIL_TYPES, STAGE_MODES, ZONE_MODE_MIXED, ZONE_MODES, ZONE_MODES_ALL
 from .entities.base import IrrigationCascadeEntity, IrrigationConfigEntity, IrrigationCropsEntity, IrrigationZoneEntity
 
 
@@ -34,6 +34,7 @@ async def async_setup_entry(
             [
                 ZoneSwitchEntitySelect(coordinator, zone_id),
                 IrrigationZoneModeSelect(coordinator, zone_id),
+                IrrigationFrequencySelect(coordinator, zone_id),
                 IrrigationCultivationModeSelect(coordinator, zone_id),
                 IrrigationCropSelect(coordinator, zone_id),
                 IrrigationStageModeSelect(coordinator, zone_id),
@@ -104,6 +105,24 @@ class IrrigationZoneModeSelect(IrrigationZoneEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.async_set_zone_mode(self.zone_id, option)
+
+
+class IrrigationFrequencySelect(IrrigationZoneEntity, SelectEntity):
+    """Irrigation interval for scheduled/auto modes: every day, every N days."""
+
+    _attr_translation_key = "frequency_days"
+    _attr_icon = "mdi:calendar-sync-outline"
+    _attr_options = FREQUENCY_DAYS_OPTIONS
+
+    def __init__(self, coordinator, zone_id: str) -> None:
+        super().__init__(coordinator, zone_id, "frequency_days")
+
+    @property
+    def current_option(self) -> str:
+        return str(self.coordinator.zone_states[self.zone_id].frequency_days)
+
+    async def async_select_option(self, option: str) -> None:
+        await self.coordinator.async_set_frequency_days(self.zone_id, int(option))
 
 
 class AllZonesModeSelect(IrrigationConfigEntity, SelectEntity):

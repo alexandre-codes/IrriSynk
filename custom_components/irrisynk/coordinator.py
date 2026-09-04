@@ -10,7 +10,7 @@ from dataclasses import replace
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from homeassistant.components.weather import ATTR_FORECAST_PRECIPITATION
+from homeassistant.components.weather import ATTR_FORECAST_PRECIPITATION, ATTR_FORECAST_TIME
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EVENT_HOMEASSISTANT_STARTED
 from homeassistant.core import HomeAssistant, callback
@@ -70,6 +70,19 @@ _LOGGER = logging.getLogger(__name__)
 _DEFAULT_ET0 = 3.5
 
 
+def _get_zone_device(dev_reg, entry_id: str, zone_id: str):
+    """Look up the zone's device entry.
+
+    Uses the newer per-config-entry lookup (HA 2026.8+) when available, since
+    async_get_device(identifiers=...) is deprecated and will stop working in
+    HA 2027.8; falls back to it on older cores that lack the new method.
+    """
+    identifier = (DOMAIN, f"{entry_id}_{zone_id}")
+    if hasattr(dev_reg, "async_get_device_by_identifier"):
+        return dev_reg.async_get_device_by_identifier(identifier, entry_id)
+    return dev_reg.async_get_device(identifiers={identifier})
+
+
 def _compute_irrigation_from_states(states: list, flow_mm_h: float, end: datetime) -> float:
     """Compute irrigation (mm) from switch/valve state history."""
     try:
@@ -79,7 +92,8 @@ def _compute_irrigation_from_states(states: list, flow_mm_h: float, end: datetim
                 next_time = states[i + 1].last_changed if i + 1 < len(states) else end
                 on_seconds += (next_time - state.last_changed).total_seconds()
         return round(on_seconds / 3600.0 * flow_mm_h, 2)
-    except Exception:
+    except Exception as exc:
+        _LOGGER.warning(f"Could not compute irrigation from state history ({exc})")
         return 0.0
 
 
@@ -472,6 +486,9 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
             if zone.stage_mode == STAGE_MODE_AUTO_BY_DAYS and zone.planting_date is None:
                 confidence = 70
                 notes.append("Planting date missing in auto mode.")
+            due_today = self._zone_due_today(zone, today)
+            if not due_today and zone.zone_mode in (ZONE_MODE_SCHEDULED, ZONE_MODE_AUTO):
+                notes.append("Not an irrigation day (frequency).")
 
             soil_capacity_mm = self._compute_raw_mm(zone_id)
             data[zone_id] = ZoneComputedState(
@@ -481,8 +498,10 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
                 water_need_mm=water_need,
                 recommended_duration_min=duration if zone.zone_mode != ZONE_MODE_MANUAL else 0.0,
                 effective_duration_min=(
-                    zone.scheduled_duration_min if zone.zone_mode == ZONE_MODE_SCHEDULED
-                    else (duration if zone.zone_mode == ZONE_MODE_AUTO else 0.0)
+                    0.0 if not due_today else (
+                        zone.scheduled_duration_min if zone.zone_mode == ZONE_MODE_SCHEDULED
+                        else (duration if zone.zone_mode == ZONE_MODE_AUTO else 0.0)
+                    )
                 ),
                 effective_rain_mm=effective_rain,
                 confidence=confidence,
@@ -490,6 +509,7 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
                 irrigation_today_mm=irrigation_today_mm,
                 soil_capacity_mm=soil_capacity_mm,
                 notes=notes,
+                next_irrigation_date=self._next_irrigation_date(zone, today),
             )
         return data
 
@@ -502,9 +522,32 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
     # ETP from forecast (pure weather entity — no sensor override for today)
     # ------------------------------------------------------------------
 
+    def _get_today_forecast_entry(self, forecast: list[dict]) -> dict:
+        """Return the forecast entry matching today's date, falling back to index 0.
+
+        Some weather integrations already roll their daily forecast list over to
+        tomorrow before local midnight (timezone or provider cutoff differences).
+        Blindly trusting forecast[0] would then silently apply tomorrow's
+        ET0/precipitation to today's irrigation calculation.
+        """
+        if not forecast:
+            return {}
+        today = dt_util.now().date()
+        for entry in forecast:
+            raw_dt = entry.get(ATTR_FORECAST_TIME)
+            if not raw_dt:
+                continue
+            parsed = dt_util.parse_datetime(raw_dt) or dt_util.parse_date(raw_dt)
+            if parsed is None:
+                continue
+            entry_date = parsed.date() if isinstance(parsed, datetime) else parsed
+            if entry_date == today:
+                return entry
+        return forecast[0]
+
     def _compute_et0_forecast(self, attrs: dict, forecast: list[dict]) -> float:
         """Compute today's ET0 from weather forecast only."""
-        fc0 = forecast[0] if forecast else {}
+        fc0 = self._get_today_forecast_entry(forecast)
 
         tmax = _safe_float(fc0.get("temperature")) or _safe_float(attrs.get("temperature")) or 25.0
         tmin = _safe_float(fc0.get("templow")) or (tmax - 12.0)
@@ -537,9 +580,10 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
         if sensor_id:
             val = self._get_entity_float(sensor_id)
             if val is not None:
-                        return val
+                return val
         if forecast:
-            return float(forecast[0].get(ATTR_FORECAST_PRECIPITATION, 0.0) or 0.0)
+            fc0 = self._get_today_forecast_entry(forecast)
+            return float(fc0.get(ATTR_FORECAST_PRECIPITATION, 0.0) or 0.0)
         return 0.0
 
     # ------------------------------------------------------------------
@@ -581,6 +625,35 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
         await self._async_save()
         await self._async_recompute_from_cache()
 
+    def _zone_due_today(self, zone: ZoneState, today: date) -> bool:
+        """True if today falls on the zone's irrigation interval (scheduled/auto modes)."""
+        if zone.frequency_days <= 1:
+            return True
+        anchor = zone.frequency_anchor_date or today
+        return (today - anchor).days % zone.frequency_days == 0
+
+    def _next_irrigation_date(self, zone: ZoneState, today: date) -> date | None:
+        """Next date (today or later) the zone is due to irrigate; None in manual mode."""
+        if zone.zone_mode == ZONE_MODE_MANUAL:
+            return None
+        if zone.frequency_days <= 1:
+            return today
+        anchor = zone.frequency_anchor_date or today
+        remainder = (today - anchor).days % zone.frequency_days
+        return today if remainder == 0 else today + timedelta(days=zone.frequency_days - remainder)
+
+    async def async_set_frequency_days(self, zone_id: str, value: int) -> None:
+        """Set the irrigation interval (in days) for a zone; (re)anchor the cycle on today."""
+        zone = self.zone_states[zone_id]
+        anchor = date.today() if value > 1 and zone.frequency_anchor_date is None else zone.frequency_anchor_date
+        if value <= 1:
+            anchor = None
+        self.zone_states[zone_id] = replace(
+            zone, frequency_days=value, frequency_anchor_date=anchor
+        )
+        self._refresh_all_cascade_times()
+        await self._async_save_and_notify(zone_id)
+
     def _compute_raw_mm(self, zone_id: str) -> float:
         """Compute Readily Available Water (RAW = 0.4 × TAW) for the zone's current state.
 
@@ -621,10 +694,6 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
     async def async_delete_custom_crop(self, crop_id: str) -> None:
         """Delete a custom crop and reset any zones using it."""
         await self.async_delete_crop(crop_id)
-
-    async def async_save_stage_edit(self) -> None:
-        """Save edits to the currently selected stage."""
-        await self.async_update_stage()
 
     async def async_set_zone_mode(self, zone_id: str, mode: str) -> None:
         self.zone_states[zone_id] = replace(self.zone_states[zone_id], zone_mode=mode)
@@ -686,11 +755,19 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
                 continue
             zone = self.zone_states[zone_id]
             computed = data[zone_id]
+            today = dt_util.now().date()
+            due_today = self._zone_due_today(zone, today)
             effective = (
-                zone.scheduled_duration_min if zone.zone_mode == ZONE_MODE_SCHEDULED
-                else (computed.recommended_duration_min if zone.zone_mode == ZONE_MODE_AUTO else 0.0)
+                0.0 if not due_today else (
+                    zone.scheduled_duration_min if zone.zone_mode == ZONE_MODE_SCHEDULED
+                    else (computed.recommended_duration_min if zone.zone_mode == ZONE_MODE_AUTO else 0.0)
+                )
             )
-            data[zone_id] = replace(computed, effective_duration_min=effective)
+            data[zone_id] = replace(
+                computed,
+                effective_duration_min=effective,
+                next_irrigation_date=self._next_irrigation_date(zone, today),
+            )
         self.async_set_updated_data(data)
         self.hass.async_create_task(self._async_save())
 
@@ -729,9 +806,7 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
     def _zone_display_name(self, zone_id: str) -> str:
         from homeassistant.helpers import device_registry as dr
         dev_reg = dr.async_get(self.hass)
-        device = dev_reg.async_get_device(
-            identifiers={(DOMAIN, f"{self.entry.entry_id}_{zone_id}")}
-        )
+        device = _get_zone_device(dev_reg, self.entry.entry_id, zone_id)
         return (device.name_by_user or device.name) if device else zone_id
 
     async def _async_send_telegram(self, message: str) -> None:

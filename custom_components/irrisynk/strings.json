@@ -238,9 +238,6 @@
           "valve_zone_200": "Zone 200"
         }
       }
-    },
-    "error": {
-      "zones_required": "At least one zone is required."
     }
   },
   "options": {
@@ -513,6 +510,9 @@
       "water_need_mm": {
         "name": "Water need"
       },
+      "next_irrigation": {
+        "name": "Next irrigation"
+      },
       "recommended_duration_min": {
         "name": "Recommended duration"
       },
@@ -531,13 +531,16 @@
       "soil_water_balance_mm": {
         "name": "J-1 Water Balance"
       },
+      "soil_capacity_mm": {
+        "name": "Soil capacity (RAW)"
+      },
       "calc_result_mm_h": {
         "name": "Flow rate (mm/m²/h)"
       }
     },
     "switch": {
-      "cascade": {
-        "name": "Cascade irrigation"
+      "cascade_enabled": {
+        "name": "Cascade enabled"
       },
       "telegram_enabled": {
         "name": "Enable alerts"
@@ -567,6 +570,20 @@
           "auto": "Automatic"
         }
       },
+      "frequency_days": {
+        "name": "Frequency",
+        "state": {
+          "1": "Every day",
+          "2": "Every 2 days",
+          "3": "Every 3 days",
+          "4": "Every 4 days",
+          "5": "Every 5 days",
+          "6": "Every 6 days",
+          "7": "Every 7 days",
+          "10": "Every 10 days",
+          "14": "Every 14 days"
+        }
+      },
       "crop": {
         "name": "Crop"
       },
@@ -583,6 +600,18 @@
           "paillage_epais": "Heavy organic mulch (15cm)",
           "toile_film": "Woven cover or plastic film",
           "serre": "Greenhouse (legacy)"
+        }
+      },
+      "soil_type": {
+        "name": "Soil type",
+        "state": {
+          "sandy":      "Sandy",
+          "loamy_sand": "Loamy sand",
+          "sandy_loam": "Sandy loam",
+          "loam":       "Loam",
+          "silt_loam":  "Silt loam",
+          "clay_loam":  "Clay loam",
+          "clay":       "Clay"
         }
       },
       "stage_mode": {
@@ -609,6 +638,9 @@
       },
       "telegram_chat_id": {
         "name": "Telegram Chat"
+      },
+      "cascade_zone_selector": {
+        "name": "Zone to add"
       }
     },
     "number": {
@@ -660,6 +692,9 @@
       "cult_mode_et0": {
         "name": "ET0 correction factor"
       },
+      "crop_form_root_depth": {
+        "name": "Root depth (cm)"
+      },
       "stage_form_kc": {
         "name": "Kc coefficient"
       },
@@ -707,6 +742,9 @@
       },
       "edit_stage_name": {
         "name": "Stage name (edit)"
+      },
+      "cascade_form_name": {
+        "name": "Cascade name"
       }
     },
     "button": {
@@ -751,6 +789,15 @@
       },
       "save_stage": {
         "name": "Save stage"
+      },
+      "cascade_create": {
+        "name": "Create cascade"
+      },
+      "cascade_delete": {
+        "name": "Delete cascade"
+      },
+      "cascade_add_zone": {
+        "name": "Add zone to cascade"
       }
     }
   }

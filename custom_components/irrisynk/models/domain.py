@@ -70,6 +70,8 @@ class ZoneState:
     soil_water_balance_mm: float = 0.0  # J-1 balance: positive=surplus, negative=deficit
     irrigation_end_time: str | None = None  # ISO datetime — persisted so timer survives reboot
     soil_type: str = "loam"  # FAO-56 soil texture class
+    frequency_days: int = 1  # irrigation interval: 1 = every day, N = every N days
+    frequency_anchor_date: date | None = None  # reference date the interval cycle counts from
 
 
 @dataclass
@@ -139,6 +141,7 @@ class ZoneComputedState:
     irrigation_today_mm: float = 0.0
     soil_capacity_mm: float = 0.0  # RAW = 0.4 × TAW, computed from soil_type × root_depth
     notes: list[str] = field(default_factory=list)
+    next_irrigation_date: date | None = None  # next date the zone is due (None = manual mode)
 
 
 @dataclass

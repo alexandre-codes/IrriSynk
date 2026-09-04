@@ -14,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN
+from .const import DOMAIN, ZONE_MODE_MANUAL
 from .coordinator import IrrigationCoordinator
 from .entities.base import IrrigationCalculatorEntity, IrrigationZoneEntity
 
@@ -31,6 +31,7 @@ async def async_setup_entry(
         entities.extend(
             [
                 WaterNeedSensor(coordinator, zone_id),
+                NextIrrigationSensor(coordinator, zone_id),
                 EffectiveRainSensor(coordinator, zone_id),
                 IrrigationTodaySensor(coordinator, zone_id),
                 DurationSensor(coordinator, zone_id),
@@ -171,6 +172,41 @@ class IrrigationTodaySensor(IrrigationZoneEntity, SensorEntity):
     @property
     def last_reset(self):
         return dt_util.start_of_local_day(dt_util.now())
+
+
+class NextIrrigationSensor(IrrigationZoneEntity, SensorEntity):
+    """Human-readable indicator: is irrigation due today, and if not, when."""
+
+    _attr_translation_key = "next_irrigation"
+    _attr_icon = "mdi:calendar-clock-outline"
+
+    def __init__(self, coordinator, zone_id: str) -> None:
+        super().__init__(coordinator, zone_id, "next_irrigation")
+
+    @property
+    def native_value(self) -> str:
+        zone = self.coordinator.zone_states[self.zone_id]
+        is_en = self.coordinator._is_english()
+        if zone.zone_mode == ZONE_MODE_MANUAL:
+            return "Manual" if is_en else "Manuel"
+        computed = self.coordinator.data.get(self.zone_id) if self.coordinator.data else None
+        next_date = computed.next_irrigation_date if computed else None
+        if next_date is None:
+            return "—"
+        today = dt_util.now().date()
+        if next_date == today:
+            return "Today" if is_en else "Aujourd'hui"
+        delta = (next_date - today).days
+        if delta == 1:
+            return "Tomorrow" if is_en else "Demain"
+        date_str = next_date.strftime("%d/%m")
+        return f"In {delta} days ({date_str})" if is_en else f"Dans {delta} jours ({date_str})"
+
+    @property
+    def extra_state_attributes(self):
+        computed = self.coordinator.data.get(self.zone_id) if self.coordinator.data else None
+        next_date = computed.next_irrigation_date if computed else None
+        return {"date": next_date.isoformat()} if next_date else {}
 
 
 class ConfidenceSensor(IrrigationZoneEntity, SensorEntity):
