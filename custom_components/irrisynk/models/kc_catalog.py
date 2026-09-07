@@ -168,6 +168,7 @@ def parse_catalog(raw: dict) -> KcCatalog:
                 label_en=crop.get("label_en"),
                 stages=tuple(stages),
                 root_depth_cm=root_depth_cm,
+                icon=str(crop["icon"]) if crop.get("icon") else "mdi:sprout",
             )
         )
 

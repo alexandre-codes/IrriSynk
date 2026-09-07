@@ -118,6 +118,12 @@ class CropsMixin:
                 return custom.crop_id
         return self.catalog.crops[0].crop_id
 
+    def crop_icon(self, zone_id: str) -> str:
+        crop_id = self.zone_states[zone_id].crop_id
+        if crop := self.catalog.crop_map.get(crop_id):
+            return crop.icon
+        return "mdi:sprout"
+
     # ------------------------------------------------------------------
     # Stage helpers
     # ------------------------------------------------------------------

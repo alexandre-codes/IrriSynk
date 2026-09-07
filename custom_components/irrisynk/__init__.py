@@ -24,8 +24,10 @@ _JS_URL = f"/{DOMAIN}/irrisynk_zone_order_card.js"
 _JS_FILE = Path(__file__).parent / "irrisynk_zone_order_card.js"
 _ICONS_JS_URL = f"/{DOMAIN}/irrisynk_icons.js"
 _ICONS_JS_FILE = Path(__file__).parent / "irrisynk_icons.js"
-# v3: forces re-registration this session to add the custom sidebar-icon script
-_FRONTEND_KEY = f"{DOMAIN}_frontend_v3"
+_DIALOG_JS_URL = f"/{DOMAIN}/irrisynk_zone_dialog.js"
+_DIALOG_JS_FILE = Path(__file__).parent / "irrisynk_zone_dialog.js"
+# v4: forces re-registration this session to add the zone-detail popup script
+_FRONTEND_KEY = f"{DOMAIN}_frontend_v4"
 
 
 async def _async_register_frontend(hass: HomeAssistant) -> None:
@@ -40,11 +42,13 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         await hass.http.async_register_static_paths([
             StaticPathConfig(_JS_URL, str(_JS_FILE), cache_headers=False),
             StaticPathConfig(_ICONS_JS_URL, str(_ICONS_JS_FILE), cache_headers=False),
+            StaticPathConfig(_DIALOG_JS_URL, str(_DIALOG_JS_FILE), cache_headers=False),
         ])
     except Exception:
         try:
             hass.http.register_static_path(_JS_URL, str(_JS_FILE), cache_headers=False)
             hass.http.register_static_path(_ICONS_JS_URL, str(_ICONS_JS_FILE), cache_headers=False)
+            hass.http.register_static_path(_DIALOG_JS_URL, str(_DIALOG_JS_FILE), cache_headers=False)
         except Exception:
             _LOGGER.warning("IrriSynk: could not register static paths for JS assets")
 
@@ -58,12 +62,16 @@ async def _async_register_frontend(hass: HomeAssistant) -> None:
         # es5=False -> unconditional `import(url)`, same pattern HACS uses for its own
         # icon set. es5=True is skipped entirely on modern browsers (window.latestJS).
         add_extra_js_url(hass, _ICONS_JS_URL)
+        # Zone-detail popup: its "ll-custom" listener must be attached before any tile
+        # can be tapped, so it needs the same synchronous (es5) loading as the zone-order card.
+        add_extra_js_url(hass, _DIALOG_JS_URL, es5=True)
     except Exception as exc:
         _LOGGER.warning("IrriSynk JS: add_extra_js_url failed: %s", exc)
 
     # 2. Live Lovelace resource collection — all clients (mobile app, mobile browser,
     #    desktop) fetch this via the lovelace/resources WebSocket API.
     await _async_ensure_lovelace_resource(hass, _JS_URL)
+    await _async_ensure_lovelace_resource(hass, _DIALOG_JS_URL)
 
 
 async def _async_ensure_lovelace_resource(hass: HomeAssistant, url: str) -> None:

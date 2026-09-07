@@ -31,6 +31,7 @@ class CropDefinition:
     label_en: str | None
     stages: tuple[StageDefinition, ...]
     root_depth_cm: int | None = None
+    icon: str = "mdi:sprout"
 
 
 @dataclass(frozen=True)

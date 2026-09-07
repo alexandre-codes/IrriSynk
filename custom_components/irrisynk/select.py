@@ -148,10 +148,13 @@ class AllZonesModeSelect(IrrigationConfigEntity, SelectEntity):
 
 class IrrigationCropSelect(IrrigationZoneEntity, SelectEntity):
     _attr_translation_key = "crop"
-    _attr_icon = "mdi:sprout"
 
     def __init__(self, coordinator, zone_id: str) -> None:
         super().__init__(coordinator, zone_id, "crop")
+
+    @property
+    def icon(self) -> str:
+        return self.coordinator.crop_icon(self.zone_id)
 
     @property
     def options(self) -> list[str]:

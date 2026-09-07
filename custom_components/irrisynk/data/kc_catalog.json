@@ -5,6 +5,7 @@
       "crop_id": "mais_grain",
       "label": "Mais grain",
       "label_en": "Grain Corn",
+      "icon": "mdi:corn",
       "root_depth_cm": 120,
       "stages": [
         { "stage_id": "6_8_feuilles", "label": "6-8 feuilles", "label_en": "6-8 Leaves", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 10, "kc": 0.5 },
@@ -23,6 +24,7 @@
       "crop_id": "mais_doux",
       "label": "Mais doux",
       "label_en": "Sweet Corn",
+      "icon": "mdi:corn",
       "root_depth_cm": 100,
       "stages": [
         { "stage_id": "6_8_feuilles", "label": "6-8 feuilles", "label_en": "6-8 Leaves", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.5 },
@@ -37,6 +39,7 @@
       "crop_id": "soja",
       "label": "Soja",
       "label_en": "Soybean",
+      "icon": "mdi:sprout",
       "root_depth_cm": 80,
       "stages": [
         { "stage_id": "4_noeuds", "label": "4 noeuds", "label_en": "4 Nodes", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.3 },
@@ -53,6 +56,7 @@
       "crop_id": "tournesol",
       "label": "Tournesol",
       "label_en": "Sunflower",
+      "icon": "mdi:flower",
       "root_depth_cm": 100,
       "stages": [
         { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 8, "kc": 0.3 },
@@ -68,6 +72,7 @@
       "crop_id": "cereales_hiver",
       "label": "Cereales d'hiver",
       "label_en": "Winter Cereals",
+      "icon": "mdi:barley",
       "root_depth_cm": 120,
       "stages": [
         { "stage_id": "tallage", "label": "Tallage", "label_en": "Tillering", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.6 },
@@ -83,6 +88,7 @@
       "crop_id": "colza",
       "label": "Colza",
       "label_en": "Rapeseed",
+      "icon": "mdi:flower-poppy",
       "root_depth_cm": 100,
       "stages": [
         { "stage_id": "automne", "label": "Automne", "label_en": "Autumn", "duration_days": 31, "duration_days_open_field": 31, "duration_days_greenhouse": 31, "kc": 0.5 },
@@ -96,6 +102,7 @@
       "crop_id": "ail",
       "label": "Ail",
       "label_en": "Garlic",
+      "icon": "mdi:sprout",
       "root_depth_cm": 40,
       "stages": [
         { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 18, "kc": 0.5 },
@@ -108,6 +115,7 @@
       "crop_id": "asperge",
       "label": "Asperge",
       "label_en": "Asparagus",
+      "icon": "mdi:sprout",
       "root_depth_cm": 150,
       "stages": [
         { "stage_id": "plantation_reprise", "label": "Plantation / reprise", "label_en": "Planting / Establishment", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 0.5 },
@@ -120,6 +128,7 @@
       "crop_id": "aubergine",
       "label": "Aubergine",
       "label_en": "Eggplant",
+      "icon": "mdi:sprout",
       "root_depth_cm": 80,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 35, "kc": 0.5 },
@@ -132,6 +141,7 @@
       "crop_id": "betterave",
       "label": "Betterave",
       "label_en": "Beet",
+      "icon": "mdi:sprout",
       "root_depth_cm": 90,
       "stages": [
         { "stage_id": "semis", "label": "Semis", "label_en": "Sowing", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.5 },
@@ -143,6 +153,7 @@
       "crop_id": "carotte",
       "label": "Carotte",
       "label_en": "Carrot",
+      "icon": "mdi:carrot",
       "root_depth_cm": 60,
       "stages": [
         { "stage_id": "semis", "label": "Semis", "label_en": "Sowing", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.5 },
@@ -153,6 +164,7 @@
       "crop_id": "chou_fleur",
       "label": "Chou-fleur",
       "label_en": "Cauliflower",
+      "icon": "mdi:flower-outline",
       "root_depth_cm": 50,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 0.5 },
@@ -164,6 +176,7 @@
       "crop_id": "concombre",
       "label": "Concombre",
       "label_en": "Cucumber",
+      "icon": "mdi:sprout",
       "root_depth_cm": 80,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 7, "kc": 0.5 },
@@ -176,6 +189,7 @@
       "crop_id": "courge",
       "label": "Courge",
       "label_en": "Squash",
+      "icon": "mdi:pumpkin",
       "root_depth_cm": 100,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 35, "duration_days_open_field": 35, "duration_days_greenhouse": 28, "kc": 0.5 },
@@ -187,6 +201,7 @@
       "crop_id": "courgette",
       "label": "Courgette",
       "label_en": "Zucchini",
+      "icon": "mdi:sprout",
       "root_depth_cm": 70,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.5 },
@@ -198,6 +213,7 @@
       "crop_id": "epinard",
       "label": "Epinard",
       "label_en": "Spinach",
+      "icon": "mdi:leaf",
       "root_depth_cm": 40,
       "stages": [
         { "stage_id": "semis", "label": "Semis", "label_en": "Sowing", "duration_days": 12, "duration_days_open_field": 12, "duration_days_greenhouse": 8, "kc": 0.5 },
@@ -211,6 +227,7 @@
       "crop_id": "haricot",
       "label": "Haricot",
       "label_en": "Bean",
+      "icon": "mdi:seed",
       "root_depth_cm": 60,
       "stages": [
         { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.5 },
@@ -223,6 +240,7 @@
       "crop_id": "melon",
       "label": "Melon",
       "label_en": "Melon",
+      "icon": "mdi:fruit-watermelon",
       "root_depth_cm": 100,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 40, "duration_days_open_field": 40, "duration_days_greenhouse": 30, "kc": 0.4 },
@@ -235,6 +253,7 @@
       "crop_id": "oignon",
       "label": "Oignon",
       "label_en": "Onion",
+      "icon": "mdi:sprout",
       "root_depth_cm": 40,
       "stages": [
         { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.6 },
@@ -248,6 +267,7 @@
       "crop_id": "poireau",
       "label": "Poireau",
       "label_en": "Leek",
+      "icon": "mdi:leek",
       "root_depth_cm": 50,
       "stages": [
         { "stage_id": "reprise_recolte", "label": "Reprise / Recolte", "label_en": "Establishment / Harvest", "duration_days": 120, "duration_days_open_field": 120, "duration_days_greenhouse": 100, "kc": 0.7 }
@@ -257,6 +277,7 @@
       "crop_id": "pois",
       "label": "Pois",
       "label_en": "Pea",
+      "icon": "mdi:seed-outline",
       "root_depth_cm": 70,
       "stages": [
         { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.5 },
@@ -270,6 +291,7 @@
       "crop_id": "poivron",
       "label": "Poivron",
       "label_en": "Bell Pepper",
+      "icon": "mdi:chili-mild",
       "root_depth_cm": 70,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 35, "kc": 0.5 },
@@ -282,6 +304,7 @@
       "crop_id": "pomme_de_terre",
       "label": "Pomme de terre",
       "label_en": "Potato",
+      "icon": "mdi:sprout",
       "root_depth_cm": 50,
       "stages": [
         { "stage_id": "levee", "label": "Levee", "label_en": "Emergence", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.5 },
@@ -293,6 +316,7 @@
       "crop_id": "salade_ete",
       "label": "Salade d'ete",
       "label_en": "Summer Lettuce",
+      "icon": "mdi:leaf",
       "root_depth_cm": 30,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.4 },
@@ -303,6 +327,7 @@
       "crop_id": "tomate",
       "label": "Tomate",
       "label_en": "Tomato",
+      "icon": "mdi:fruit-cherries",
       "root_depth_cm": 100,
       "stages": [
         { "stage_id": "plantation", "label": "Plantation", "label_en": "Planting", "duration_days": 10, "duration_days_open_field": 10, "duration_days_greenhouse": 7, "kc": 0.2 },
@@ -315,6 +340,7 @@
       "crop_id": "fraise",
       "label": "Fraise",
       "label_en": "Strawberry",
+      "icon": "mdi:fruit-grapes-outline",
       "root_depth_cm": 25,
       "stages": [
         { "stage_id": "depart_vegetation", "label": "Depart vegetation", "label_en": "Vegetation Start", "duration_days": 25, "duration_days_open_field": 25, "duration_days_greenhouse": 20, "kc": 0.4 },
@@ -327,6 +353,7 @@
       "crop_id": "framboise",
       "label": "Framboise",
       "label_en": "Raspberry",
+      "icon": "mdi:fruit-grapes",
       "root_depth_cm": 40,
       "stages": [
         { "stage_id": "depart_vegetation", "label": "Depart vegetation", "label_en": "Vegetation Start", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 25, "kc": 0.4 },
@@ -339,6 +366,7 @@
       "crop_id": "pommier",
       "label": "Pommier",
       "label_en": "Apple Tree",
+      "icon": "mdi:food-apple",
       "root_depth_cm": 150,
       "stages": [
         { "stage_id": "floraison", "label": "Floraison", "label_en": "Flowering", "duration_days": 45, "duration_days_open_field": 45, "duration_days_greenhouse": 40, "kc": 0.5 },
@@ -351,6 +379,7 @@
       "crop_id": "prunier",
       "label": "Prunier",
       "label_en": "Plum Tree",
+      "icon": "mdi:fruit-pear",
       "root_depth_cm": 150,
       "stages": [
         { "stage_id": "developpement", "label": "Developpement", "label_en": "Development", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 30, "kc": 0.9 },
@@ -362,6 +391,7 @@
       "crop_id": "noisetier",
       "label": "Noisetier",
       "label_en": "Hazelnut",
+      "icon": "mdi:peanut",
       "root_depth_cm": 120,
       "stages": [
         { "stage_id": "developpement", "label": "Developpement", "label_en": "Development", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 30, "kc": 0.5 },
@@ -373,6 +403,7 @@
       "crop_id": "kiwi",
       "label": "Kiwi",
       "label_en": "Kiwi",
+      "icon": "mdi:fruit-citrus",
       "root_depth_cm": 90,
       "stages": [
         { "stage_id": "developpement", "label": "Developpement", "label_en": "Development", "duration_days": 30, "duration_days_open_field": 30, "duration_days_greenhouse": 30, "kc": 0.6 },
@@ -385,6 +416,7 @@
       "crop_id": "tabac",
       "label": "Tabac",
       "label_en": "Tobacco",
+      "icon": "mdi:leaf",
       "root_depth_cm": 70,
       "stages": [
         { "stage_id": "repiquage", "label": "Repiquage", "label_en": "Transplanting", "duration_days": 20, "duration_days_open_field": 20, "duration_days_greenhouse": 15, "kc": 0.4 },

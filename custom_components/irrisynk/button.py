@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 
 from homeassistant.components.button import ButtonEntity
 from homeassistant.config_entries import ConfigEntry
@@ -96,6 +97,13 @@ class AddZoneButton(CoordinatorEntity[IrrigationCoordinator], ButtonEntity):
             if m:
                 highest = max(highest, int(m.group(1)))
         new_zone = f"zone_{highest + 1}"
+        # Picked up by async_update_dashboard() once the reload below completes and
+        # the new zone actually exists, to auto-open its popup. Timestamped so a
+        # failed/retried reload can't leave this stale forever and wrongly trigger
+        # the popup on some later, unrelated dashboard rebuild.
+        self.hass.data.setdefault(f"{DOMAIN}_pending_new_zone", {})[entry.entry_id] = (
+            new_zone, time.monotonic(),
+        )
         updated_options = {**entry.options, "zones": current_zones + [new_zone]}
         self.hass.config_entries.async_update_entry(entry, options=updated_options)
         await self.hass.config_entries.async_reload(entry.entry_id)

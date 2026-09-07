@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import os
+import time
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -28,6 +29,7 @@ _DASHBOARD_URL = "dashboard-irrisynk"
 _STORAGE_KEY_CONFIG = f"lovelace.{_DASHBOARD_URL}"
 _STORAGE_VERSION = 1
 _EVENT_LOVELACE_UPDATED = "lovelace_updated"
+_PENDING_NEW_ZONE_TIMEOUT = 60  # seconds — see async_update_dashboard()
 
 _DASHBOARD_META = {
     "url_path": _DASHBOARD_URL,
@@ -66,6 +68,28 @@ async def async_update_dashboard(hass: HomeAssistant) -> None:
             await _async_push_to_storage(hass, config)
         except Exception as exc:  # noqa: BLE001
             _LOGGER.debug("Lovelace storage push failed (%s)", exc)
+
+        # If a zone was just added (AddZoneButton), it now exists — fire the popup
+        # payload so the frontend can auto-open it once, instead of the user having
+        # to find the new zone card themselves. Discarded once stale (e.g. the
+        # reload that was supposed to consume it failed/retried) so it can't
+        # wrongly fire on some later, unrelated dashboard rebuild.
+        pending = hass.data.get(f"{DOMAIN}_pending_new_zone", {}).pop(entry_id, None)
+        if pending:
+            pending_zone_id, pending_ts = pending
+            fresh = (time.monotonic() - pending_ts) < _PENDING_NEW_ZONE_TIMEOUT
+            if fresh and pending_zone_id in coordinator.zone_states:
+                lbl = _get_labels(coordinator)
+                payload = _build_zone_dialog_payload(
+                    entry_id, uid_to_entity, pending_zone_id,
+                    zone_names.get(pending_zone_id, pending_zone_id),
+                    entity_own_names, lbl,
+                )
+                hass.bus.async_fire(f"{DOMAIN}_zone_created", {
+                    "irrisynk_dialog": payload,
+                    "dashboard_url_path": _DASHBOARD_URL,
+                })
+
         return  # Single-instance: first entry only
 
 
@@ -356,13 +380,10 @@ def _build_dashboard_config(
         "title": coordinator.entry.title,
         "views": [
             _build_accueil_view(*zone_args),
-            _build_programmation_view(*zone_args),
-            _build_zones_view(*zone_args),
             _build_cascades_view(entry_id, coordinator, uid_to_entity, zone_names, lbl),
             _build_cult_modes_view(entry_id, coordinator, uid_to_entity, lbl),
             _build_cultures_view(entry_id, coordinator, uid_to_entity, lbl),
-            _build_statistiques_view(entry_id, coordinator, uid_to_entity, zone_ids, zone_names, lbl),
-            _build_parametres_view(entry_id, uid_to_entity, entity_own_names, lbl),
+            _build_parametres_view(entry_id, uid_to_entity, zone_ids, zone_names, entity_own_names, lbl),
             _build_calculateur_view(entry_id, uid_to_entity, lbl),
             _build_wiki_view(*zone_args),
         ],
@@ -373,12 +394,15 @@ def _uid(uid_to_entity: dict, unique_id: str) -> str | None:
     return uid_to_entity.get(unique_id)
 
 
+def _item(entity_own_names: dict[str, str], eid: str, name: str | None = None) -> dict:
+    label = name or entity_own_names.get(eid, "")
+    return {"entity": eid, "name": label} if label else {"entity": eid}
+
+
 _LABELS: dict[str, dict[str, str]] = {
     "fr": {
         "view_home": "Accueil",
-        "view_programmation": "Programmation",
         "view_settings": "Paramètres",
-        "view_stats": "Statistiques",
         "view_calculator": "Calculateur",
         "calc_card_title": "Calculateur débit Goutte à Goutte",
         "calc_inputs_section": "Paramètres",
@@ -428,6 +452,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "ent_soil_capacity": "Capacité sol (RAW)",
         "grp_planting": "Plantation",
         "grp_actions": "Actions",
+        "confirm_delete_zone": "Supprimer définitivement la zone « {name} » ? Cette action est irréversible.",
         "ent_weather": "Météo",
         "ent_rain": "Pluie",
         "ent_et0": "ETP",
@@ -440,9 +465,8 @@ _LABELS: dict[str, dict[str, str]] = {
         "btn_recalculate": "Recalculer",
         "stat_balance": "Bilan hydrique",
         "view_wiki": "Wiki",
-        "zone_order_title": "Ordre des zones",
+        "zone_order_title": "Ordre d'affichage des zones",
         "sec_telegram": "Telegram",
-        "view_zones": "Zones",
         "view_cascades": "Cascades",
         "cascade_form_title": "Nouvelle cascade",
         "cascade_form_name": "Nom de la cascade",
@@ -459,9 +483,7 @@ _LABELS: dict[str, dict[str, str]] = {
     },
     "en": {
         "view_home": "Home",
-        "view_programmation": "Schedule",
         "view_settings": "Settings",
-        "view_stats": "Statistics",
         "view_calculator": "Calculator",
         "calc_card_title": "Drip Flow Calculator",
         "calc_inputs_section": "Parameters",
@@ -511,6 +533,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "ent_soil_capacity": "Soil capacity (RAW)",
         "grp_planting": "Planting",
         "grp_actions": "Actions",
+        "confirm_delete_zone": "Permanently delete zone “{name}”? This action cannot be undone.",
         "ent_weather": "Weather",
         "ent_rain": "Rain",
         "ent_et0": "ET0",
@@ -523,9 +546,8 @@ _LABELS: dict[str, dict[str, str]] = {
         "btn_recalculate": "Recalculate",
         "stat_balance": "Water balance",
         "view_wiki": "Wiki",
-        "zone_order_title": "Zone order",
+        "zone_order_title": "Zone display order",
         "sec_telegram": "Telegram",
-        "view_zones": "Zones",
         "view_cascades": "Cascades",
         "cascade_form_title": "New cascade",
         "cascade_form_name": "Cascade name",
@@ -611,7 +633,7 @@ _WIKI_CONTENT: dict[str, tuple[dict, dict, dict]] = {
                 "- Régler le **mode de stade** : Manuel ou Automatique par jours\n"
                 "- En manuel : sélectionner le **stade phénologique** actuel\n\n"
                 "### 3 · Activer l'arrosage automatique\n"
-                "- Dans **Programmation**, sélectionner le mode **Auto** (durée calculée) ou **Programmé** (durée fixe)\n"
+                "- Dans l'onglet **Programmation** du popup de zone (Accueil), sélectionner le mode **Auto** (durée calculée) ou **Programmé** (durée fixe)\n"
                 "- Définir l'**heure de déclenchement** de la zone\n"
                 "- En mode **Auto**, IrriSynk calcule et exécute la durée optimale chaque jour\n\n"
                 "### 4 · Affiner les paramètres\n"
@@ -627,7 +649,7 @@ _WIKI_CONTENT: dict[str, tuple[dict, dict, dict]] = {
                 "| **Manuel** | Aucun arrosage automatique — la zone est gérée à la main |\n"
                 "| **Programmé** | L'électrovanne s'ouvre à l'heure définie pour une **durée fixe** |\n"
                 "| **Auto** | L'électrovanne s'ouvre à l'heure définie pour la **durée calculée FAO-56** (nulle si pluie suffisante) |\n\n"
-                "L'heure de démarrage se configure par zone dans l'onglet **Programmation**. "
+                "L'heure de démarrage se configure par zone dans l'onglet **Programmation** du popup de zone (Accueil). "
                 "Le planificateur vérifie chaque minute les démarrages et arrêts à effectuer.\n\n"
                 "**Récupération au redémarrage** : si Home Assistant redémarre pendant un arrosage, "
                 "l'irrigation en cours est re-armée pour la durée restante ; "
@@ -637,7 +659,7 @@ _WIKI_CONTENT: dict[str, tuple[dict, dict, dict]] = {
                 "Le mode cascade permet d'arroser toutes les zones éligibles **séquentiellement** "
                 "depuis une unique heure de démarrage globale.\n\n"
                 "**Fonctionnement :**\n"
-                "1. Activer le switch **Cascade** dans l'onglet Programmation\n"
+                "1. Activer le switch **Cascade** dans l'onglet **Cascades**\n"
                 "2. Définir l'**heure de démarrage cascade**\n"
                 "3. IrriSynk calcule les heures de départ de chaque zone dans l'ordre, "
                 "avec **1 minute de battement** entre elles\n"
@@ -908,7 +930,7 @@ _WIKI_CONTENT: dict[str, tuple[dict, dict, dict]] = {
                 "- Set the **stage mode**: Manual or Automatic by days\n"
                 "- In manual mode: select the current **phenological stage**\n\n"
                 "### 3 · Enable automatic irrigation\n"
-                "- In **Scheduling**, select **Auto** mode (calculated duration) or **Scheduled** mode (fixed duration)\n"
+                "- In the **Schedule** tab of the zone popup (Home), select **Auto** mode (calculated duration) or **Scheduled** mode (fixed duration)\n"
                 "- Set the zone **start time**\n"
                 "- In **Auto** mode, IrriSynk calculates and runs the optimal duration each day\n\n"
                 "### 4 · Fine-tune parameters\n"
@@ -924,7 +946,7 @@ _WIKI_CONTENT: dict[str, tuple[dict, dict, dict]] = {
                 "| **Manual** | No automatic irrigation — the zone is managed by hand |\n"
                 "| **Scheduled** | Valve opens at the configured time for a **fixed duration** |\n"
                 "| **Auto** | Valve opens at the configured time for the **FAO-56 calculated duration** (zero if rain is sufficient) |\n\n"
-                "The start time is set per zone in the **Scheduling** tab. "
+                "The start time is set per zone in the **Schedule** tab of the zone popup (Home). "
                 "The scheduler checks every minute for irrigations to start or stop.\n\n"
                 "**Restart recovery**: if Home Assistant restarts during irrigation, "
                 "the active irrigation is re-armed for the remaining duration; "
@@ -934,7 +956,7 @@ _WIKI_CONTENT: dict[str, tuple[dict, dict, dict]] = {
                 "Cascade mode irrigates all eligible zones **sequentially** "
                 "from a single global start time.\n\n"
                 "**How it works:**\n"
-                "1. Enable the **Cascade** switch in the Scheduling tab\n"
+                "1. Enable the **Cascade** switch in the **Cascades** tab\n"
                 "2. Set the **cascade start time**\n"
                 "3. IrriSynk computes each zone's start time in order, "
                 "with a **1-minute gap** between zones\n"
@@ -1237,30 +1259,30 @@ def _zone_order_card(
     }
 
 
-def _zones_config_cards(
+def _global_config_cards(
     entry_id: str,
     uid_to_entity: dict[str, str],
     entity_own_names: dict[str, str],
     lbl: dict[str, str],
 ) -> list[dict]:
-    """Carte Configuration pour la vue Zones (Pour toutes les zones + Ajouter une zone)."""
+    """Carte Configuration pour toutes les zones (mode, valeurs par défaut, actions, ajout de zone)."""
     def g(suffix: str) -> str | None:
         return _uid(uid_to_entity, f"{entry_id}_{suffix}")
 
-    def item(eid: str) -> dict:
-        label = entity_own_names.get(eid, "")
-        return {"entity": eid, "name": label} if label else {"entity": eid}
-
     entities: list[Any] = [{"type": "section", "label": lbl["sec_all_zones"]}]
-    if eid := g("config_all_max_duration_min"):
-        entities.append(item(eid))
-    if eid := g("config_all_rain_effectiveness_pct"):
-        entities.append(item(eid))
-    if eid := g("config_all_soil_buffer_mm"):
-        entities.append(item(eid))
+    for key in [
+        "config_all_zone_mode",
+        "config_all_max_duration_min",
+        "config_all_rain_effectiveness_pct",
+        "config_all_soil_buffer_mm",
+        "config_all_recalculate",
+        "config_all_reset",
+    ]:
+        if eid := g(key):
+            entities.append(_item(entity_own_names, eid))
     entities.append({"type": "divider"})
     if eid := g("config_add_zone"):
-        entities.append(item(eid))
+        entities.append(_item(entity_own_names, eid))
 
     return [{
         "type": "entities",
@@ -1280,19 +1302,15 @@ def _telegram_cards(
     def g(suffix: str) -> str | None:
         return _uid(uid_to_entity, f"{entry_id}_{suffix}")
 
-    def item(eid: str) -> dict:
-        label = entity_own_names.get(eid, "")
-        return {"entity": eid, "name": label} if label else {"entity": eid}
-
     entities: list[Any] = [{"type": "section", "label": lbl["sec_telegram"]}]
     if eid := g("config_telegram_enabled"):
-        entities.append(item(eid))
+        entities.append(_item(entity_own_names, eid))
     if eid := g("config_telegram_chat_id"):
-        entities.append(item(eid))
+        entities.append(_item(entity_own_names, eid))
     if eid := g("config_telegram_notify_irrigations"):
-        entities.append(item(eid))
+        entities.append(_item(entity_own_names, eid))
     if eid := g("config_telegram_notify_unavailable"):
-        entities.append(item(eid))
+        entities.append(_item(entity_own_names, eid))
 
     return [{
         "type": "entities",
@@ -1303,37 +1321,77 @@ def _telegram_cards(
     }]
 
 
-def _cascade_cards(
+
+# --- Popup à onglets (tap sur le tile switch de l'Accueil) ---
+
+def _build_zone_dialog_payload(
     entry_id: str,
     uid_to_entity: dict[str, str],
+    zone_id: str,
+    device_name: str,
     entity_own_names: dict[str, str],
     lbl: dict[str, str],
-) -> list[dict]:
-    """Carte Configuration (Cascade + Pour toutes les zones) pour la vue Programmation."""
-    def g(suffix: str) -> str | None:
-        return _uid(uid_to_entity, f"{entry_id}_{suffix}")
+) -> dict:
+    def z(zid: str, key: str) -> str | None:
+        return _uid(uid_to_entity, f"{entry_id}_{zid}_{key}")
 
-    def item(eid: str) -> dict:
-        label = entity_own_names.get(eid, "")
-        return {"entity": eid, "name": label} if label else {"entity": eid}
+    def group_entities(keys: list[str]) -> list[Any]:
+        entities: list[Any] = []
+        for key in keys:
+            if eid := z(zone_id, key):
+                entities.append(_item(entity_own_names, eid))
+        return entities
 
-    def sec(key: str) -> dict:
-        return {"type": "section", "label": lbl[key]}
+    def entities_card(title: str, entities: list[Any]) -> dict:
+        return {"type": "entities", "title": title, "show_header_toggle": False, "entities": entities}
 
-    entities: list[Any] = [sec("sec_all_zones")]
-    if eid := g("config_all_zone_mode"):
-        entities.append(item(eid))
-    if eid := g("config_all_recalculate"):
-        entities.append(item(eid))
-    if eid := g("config_all_reset"):
-        entities.append(item(eid))
-    return [{
-        "type": "entities",
-        "title": lbl["card_config"],
-        "show_header_toggle": False,
-        "entities": entities,
-    }]
+    def sec(label: str) -> dict:
+        return {"type": "section", "label": label}
 
+    groups = _param_groups(lbl)
+    general_label, general_keys = groups[0]
+    valve_label, valve_keys = groups[1]
+    terrain_label, terrain_keys = groups[2]
+    planting_label, planting_keys = groups[3]
+    actions_label, delete_keys = groups[4]
+
+    general_entities = group_entities(general_keys)
+    if valve_entities := group_entities(valve_keys):
+        general_entities.append(sec(valve_label))
+        general_entities.extend(valve_entities)
+    if delete_entities := group_entities(delete_keys):
+        for entity in delete_entities:
+            entity["confirmation"] = {"text": lbl["confirm_delete_zone"].format(name=device_name)}
+        general_entities.append(sec(actions_label))
+        general_entities.extend(delete_entities)
+
+    schedule_entities = _schedule_entities(z, entity_own_names, zone_id)
+    if actions_entities := _actions_entities(z, entity_own_names, zone_id):
+        schedule_entities.append(sec(lbl["sec_actions"]))
+        schedule_entities.extend(actions_entities)
+
+    balance_cards: list[dict] = []
+    if balance_entities := _balance_entities(z, entity_own_names, zone_id):
+        balance_cards.append(entities_card(lbl["sec_balance"], balance_entities))
+    if history_card := _balance_history_card(z, lbl, zone_id, device_name):
+        balance_cards.append(history_card)
+
+    tabs = [
+        {"id": "general", "label": lbl["grp_general"], "icon": "mdi:sprinkler-variant",
+         "card": entities_card(general_label, general_entities)},
+        {"id": "programmation", "label": lbl["sec_schedule"], "icon": "mdi:calendar-clock",
+         "card": entities_card(lbl["sec_schedule"], schedule_entities)},
+        {"id": "terrain", "label": lbl["grp_terrain"], "icon": "mdi:terrain",
+         "card": entities_card(terrain_label, group_entities(terrain_keys))},
+        {"id": "plantation", "label": lbl["grp_planting"], "icon": "mdi:sprout",
+         "card": entities_card(planting_label, group_entities(planting_keys))},
+        {"id": "bilan", "label": lbl["sec_balance"], "icon": "mdi:chart-line",
+         "card": {"type": "vertical-stack", "cards": balance_cards} if balance_cards else entities_card(lbl["sec_balance"], [])},
+    ]
+    # Watched by the popup JS: if this entity disappears from hass.states (zone
+    # deleted → integration reload removes its entities), the dialog closes itself.
+    anchor_entity = z(zone_id, "switch_entity_id")
+    return {"zone_name": device_name, "anchor_entity": anchor_entity, "tabs": tabs}
 
 
 # --- Onglet 1 : Accueil (résumé rapide) ---
@@ -1344,7 +1402,7 @@ def _build_accueil_view(
     uid_to_entity: dict[str, str],
     zone_ids: list[str],
     zone_names: dict[str, str],
-    _entity_own_names: dict[str, str],
+    entity_own_names: dict[str, str],
     lbl: dict[str, str],
 ) -> dict:
     def z(zone_id: str, key: str) -> str | None:
@@ -1358,6 +1416,8 @@ def _build_accueil_view(
         tiles: list[dict] = []
         if switch_eid := coordinator.zone_states[zone_id].switch_entity_id:
             tiles.append({"type": "tile", "entity": switch_eid, "name": device_name})
+        if eid := z(zone_id, "crop"):
+            tiles.append({"type": "tile", "entity": eid, "name": lbl["sec_culture"]})
         if eid := z(zone_id, "next_irrigation"):
             tiles.append({"type": "tile", "entity": eid, "name": lbl["acc_next"]})
         if eid := z(zone_id, "start_time"):
@@ -1374,7 +1434,18 @@ def _build_accueil_view(
         zone_cards.append({
             "type": "vertical-stack",
             "cards": [
-                {"type": "markdown", "content": f"## {device_name}"},
+                {
+                    "type": "button",
+                    "name": device_name,
+                    "show_icon": False,
+                    "show_name": True,
+                    "tap_action": {
+                        "action": "fire-dom-event",
+                        "irrisynk_dialog": _build_zone_dialog_payload(
+                            entry_id, uid_to_entity, zone_id, device_name, entity_own_names, lbl,
+                        ),
+                    },
+                },
                 {"type": "grid", "columns": 2, "square": False, "cards": tiles},
             ],
         })
@@ -1389,221 +1460,100 @@ def _build_accueil_view(
             {"column_span": 2, "cards": zone_cards},
             {
                 "column_span": 1,
-                "cards": _meteo_cards(entry_id, coordinator, uid_to_entity, zone_ids, lbl) + (
-                    [_zone_order_card(zone_ids, zone_names, lbl)] if len(zone_ids) > 1 else []
+                "cards": (
+                    _meteo_cards(entry_id, coordinator, uid_to_entity, zone_ids, lbl)
+                    + _global_config_cards(entry_id, uid_to_entity, entity_own_names, lbl)
                 ),
             },
         ],
     }
 
 
-# --- Onglet 2 : Programmation (détail complet par zone) ---
+# --- Sections de zone partagées (popup à onglets de l'Accueil) ---
 
-def _build_programmation_view(
-    entry_id: str,
-    coordinator: Any,
-    uid_to_entity: dict[str, str],
-    zone_ids: list[str],
-    zone_names: dict[str, str],
-    entity_own_names: dict[str, str],
-    lbl: dict[str, str],
-) -> dict:
-    def z(zone_id: str, key: str) -> str | None:
-        return _uid(uid_to_entity, f"{entry_id}_{zone_id}_{key}")
-
-    def item(eid: str, name: str | None = None) -> dict:
-        label = name or entity_own_names.get(eid, "")
-        return {"entity": eid, "name": label} if label else {"entity": eid}
-
-    def sec(key: str) -> dict:
-        return {"type": "section", "label": lbl[key]}
-
-    zone_cards: list[dict] = []
-
-    for zone_id in zone_ids:
-        device_name = zone_names.get(zone_id, f"{coordinator.entry.title} – {zone_id}")
-        entities: list[Any] = []
-
-        entities.append(sec("sec_schedule"))
-
-        if eid := z(zone_id, "zone_mode"):
-            entities.append(item(eid))
-        if eid := z(zone_id, "start_time"):
-            entities.append(item(eid))
-        if (freq_eid := z(zone_id, "frequency_days")) and (mode_eid := z(zone_id, "zone_mode")):
-            row: dict = {"entity": freq_eid}
-            if label := entity_own_names.get(freq_eid):
-                row["name"] = label
-            entities.append({
-                "type": "conditional",
-                "conditions": [{"condition": "state", "entity": mode_eid, "state": ["scheduled", "auto"]}],
-                "row": row,
-            })
-        if (sched_eid := z(zone_id, "scheduled_duration_min")) and (mode_eid := z(zone_id, "zone_mode")):
-            row: dict = {"entity": sched_eid}
-            if label := entity_own_names.get(sched_eid):
-                row["name"] = label
-            entities.append({
-                "type": "conditional",
-                "conditions": [{"condition": "state", "entity": mode_eid, "state": "scheduled"}],
-                "row": row,
-            })
-        for key in ["recommended_duration_min"]:
-            if eid := z(zone_id, key):
-                entities.append(item(eid))
-
-        entities.append(sec("sec_culture"))
-
-        for key in ["crop", "current_stage", "kc_current"]:
-            if eid := z(zone_id, key):
-                entities.append(item(eid))
-
-        entities.append(sec("sec_balance"))
-
-        for key in ["water_need_mm", "irrigation_today_mm", "confidence",
-                    "soil_water_balance_mm", "soil_capacity_mm"]:
-            if eid := z(zone_id, key):
-                entities.append(item(eid))
-
-        entities.append(sec("sec_actions"))
-
-        if eid := z(zone_id, "recalculate"):
-            entities.append(item(eid))
-        if eid := z(zone_id, "reset_stats"):
-            entities.append(item(eid))
-
-        zone_cards.append({
-            "type": "entities",
-            "title": device_name,
-            "show_header_toggle": False,
-            "entities": entities,
+def _schedule_entities(z, entity_own_names: dict[str, str], zone_id: str) -> list[Any]:
+    entities: list[Any] = []
+    if eid := z(zone_id, "zone_mode"):
+        entities.append(_item(entity_own_names, eid))
+    if eid := z(zone_id, "start_time"):
+        entities.append(_item(entity_own_names, eid))
+    if (freq_eid := z(zone_id, "frequency_days")) and (mode_eid := z(zone_id, "zone_mode")):
+        row: dict = {"entity": freq_eid}
+        if label := entity_own_names.get(freq_eid):
+            row["name"] = label
+        entities.append({
+            "type": "conditional",
+            "conditions": [{"condition": "state", "entity": mode_eid, "state": ["scheduled", "auto"]}],
+            "row": row,
         })
-
-    right_cards = _cascade_cards(entry_id, uid_to_entity, entity_own_names, lbl)
-
-    return {
-        "title": lbl["view_programmation"],
-        "path": "programmation",
-        "icon": "mdi:calendar-clock",
-        "type": "sections",
-        "max_columns": 3,
-        "sections": [
-            {"column_span": 2, "cards": zone_cards},
-            {"column_span": 1, "cards": right_cards},
-        ],
-    }
-
-
-# --- Vue Zones (configuration par zone) ---
-
-def _build_zones_view(
-    entry_id: str,
-    coordinator: Any,
-    uid_to_entity: dict[str, str],
-    zone_ids: list[str],
-    zone_names: dict[str, str],
-    entity_own_names: dict[str, str],
-    lbl: dict[str, str],
-) -> dict:
-    def z(zone_id: str, key: str) -> str | None:
-        return _uid(uid_to_entity, f"{entry_id}_{zone_id}_{key}")
-
-    def item(eid: str, name: str | None = None) -> dict:
-        label = name or entity_own_names.get(eid, "")
-        return {"entity": eid, "name": label} if label else {"entity": eid}
-
-    zone_cards: list[dict] = []
-
-    for zone_id in zone_ids:
-        device_name = zone_names.get(zone_id, f"{coordinator.entry.title} – {zone_id}")
-        entities: list[Any] = []
-        for group_label, keys in _param_groups(lbl):
-            entities.append({"type": "section", "label": group_label})
-            for key in keys:
-                if eid := z(zone_id, key):
-                    entities.append(item(eid))
-
-        zone_cards.append({
-            "type": "entities",
-            "title": device_name,
-            "show_header_toggle": False,
-            "entities": entities,
+    if (sched_eid := z(zone_id, "scheduled_duration_min")) and (mode_eid := z(zone_id, "zone_mode")):
+        row: dict = {"entity": sched_eid}
+        if label := entity_own_names.get(sched_eid):
+            row["name"] = label
+        entities.append({
+            "type": "conditional",
+            "conditions": [{"condition": "state", "entity": mode_eid, "state": "scheduled"}],
+            "row": row,
         })
-
-    return {
-        "title": lbl["view_zones"],
-        "path": "zones",
-        "icon": "mdi:sprinkler-variant",
-        "type": "sections",
-        "max_columns": 3,
-        "sections": [
-            {"column_span": 2, "cards": zone_cards},
-            {"column_span": 1, "cards": _zones_config_cards(entry_id, uid_to_entity, entity_own_names, lbl)},
-        ],
-    }
+    for key in ["recommended_duration_min"]:
+        if eid := z(zone_id, key):
+            entities.append(_item(entity_own_names, eid))
+    return entities
 
 
-# --- Vue Paramètres (Telegram uniquement) ---
+def _balance_entities(z, entity_own_names: dict[str, str], zone_id: str) -> list[Any]:
+    entities: list[Any] = []
+    for key in ["water_need_mm", "irrigation_today_mm", "confidence",
+                "soil_water_balance_mm", "soil_capacity_mm"]:
+        if eid := z(zone_id, key):
+            entities.append(_item(entity_own_names, eid))
+    return entities
+
+
+def _actions_entities(z, entity_own_names: dict[str, str], zone_id: str) -> list[Any]:
+    entities: list[Any] = []
+    if eid := z(zone_id, "recalculate"):
+        entities.append(_item(entity_own_names, eid))
+    if eid := z(zone_id, "reset_stats"):
+        entities.append(_item(entity_own_names, eid))
+    return entities
+
+
+def _balance_history_card(z, lbl: dict[str, str], zone_id: str, device_name: str) -> dict | None:
+    if balance_eid := z(zone_id, "soil_water_balance_mm"):
+        return {
+            "type": "statistics-graph",
+            "title": f"{lbl['stat_balance']} J-1 – {device_name}",
+            "entities": [balance_eid],
+            "stat_types": ["mean"],
+            "period": "day",
+            "days_to_show": 7,
+            "chart_type": "line",
+        }
+    return None
+
+
+# --- Vue Paramètres (Telegram + ordre d'affichage des zones) ---
 
 def _build_parametres_view(
     entry_id: str,
     uid_to_entity: dict[str, str],
+    zone_ids: list[str],
+    zone_names: dict[str, str],
     entity_own_names: dict[str, str],
     lbl: dict[str, str],
 ) -> dict:
+    sections = [{"column_span": 1, "cards": _telegram_cards(entry_id, uid_to_entity, entity_own_names, lbl)}]
+    if len(zone_ids) > 1:
+        sections.append({"column_span": 1, "cards": [_zone_order_card(zone_ids, zone_names, lbl)]})
+
     return {
         "title": lbl["view_settings"],
         "path": "parametres",
         "icon": "mdi:cog",
         "type": "sections",
         "max_columns": 2,
-        "sections": [
-            {"column_span": 1, "cards": _telegram_cards(entry_id, uid_to_entity, entity_own_names, lbl)},
-        ],
-    }
-
-
-# --- Onglet 3 : Statistiques ---
-
-def _build_statistiques_view(
-    entry_id: str,
-    coordinator: Any,
-    uid_to_entity: dict[str, str],
-    zone_ids: list[str],
-    zone_names: dict[str, str],
-    lbl: dict[str, str],
-) -> dict:
-    def z(zone_id: str, key: str) -> str | None:
-        return _uid(uid_to_entity, f"{entry_id}_{zone_id}_{key}")
-
-    stat_cards: list[dict] = []
-
-    for zone_id in zone_ids:
-        device_name = zone_names.get(zone_id, f"{coordinator.entry.title} – {zone_id}")
-
-        if balance_eid := z(zone_id, "soil_water_balance_mm"):
-            stat_cards.append({
-                "type": "statistics-graph",
-                "title": f"{lbl['stat_balance']} J-1 – {device_name}",
-                "entities": [balance_eid],
-                "stat_types": ["mean"],
-                "period": "day",
-                "days_to_show": 7,
-                "chart_type": "line",
-            })
-
-    return {
-        "title": lbl["view_stats"],
-        "path": "statistiques",
-        "icon": "mdi:chart-line",
-        "type": "sections",
-        "max_columns": 3,
-        "sections": [
-            {"column_span": 2, "cards": stat_cards},
-            {"column_span": 1, "cards": _meteo_cards(
-                entry_id, coordinator, uid_to_entity, zone_ids, lbl
-            )},
-        ],
+        "sections": sections,
     }
 
 
@@ -1726,7 +1676,7 @@ def _build_cult_modes_view(
     return {
         "title": lbl["view_cult_modes"],
         "path": "modes-culture",
-        "icon": "mdi:layers-triple-outline",
+        "icon": "mdi:terrain",
         "type": "sections",
         "max_columns": 3,
         "sections": [
@@ -1777,6 +1727,7 @@ def _build_cultures_view(
         crop_cards.append({
             "type": "entities",
             "title": f"{crop.name}{depth_suffix}",
+            "icon": "mdi:sprout",
             "show_header_toggle": False,
             "entities": card_entities,
         })
@@ -1797,8 +1748,7 @@ def _build_cultures_view(
         )
         crop_cards.append({
             "type": "markdown",
-            "title": crop_label,
-            "content": depth_line + stage_content,
+            "content": f'<ha-icon icon="{crop.icon}"></ha-icon> **{crop_label}**\n\n' + depth_line + stage_content,
         })
 
     # --- Right column: two form cards ---
