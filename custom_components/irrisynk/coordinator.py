@@ -498,10 +498,8 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
                 water_need_mm=water_need,
                 recommended_duration_min=duration if zone.zone_mode != ZONE_MODE_MANUAL else 0.0,
                 effective_duration_min=(
-                    0.0 if not due_today else (
-                        zone.scheduled_duration_min if zone.zone_mode == ZONE_MODE_SCHEDULED
-                        else (duration if zone.zone_mode == ZONE_MODE_AUTO else 0.0)
-                    )
+                    zone.scheduled_duration_min if zone.zone_mode == ZONE_MODE_SCHEDULED
+                    else (duration if zone.zone_mode == ZONE_MODE_AUTO else 0.0)
                 ),
                 effective_rain_mm=effective_rain,
                 confidence=confidence,
@@ -756,12 +754,9 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
             zone = self.zone_states[zone_id]
             computed = data[zone_id]
             today = dt_util.now().date()
-            due_today = self._zone_due_today(zone, today)
             effective = (
-                0.0 if not due_today else (
-                    zone.scheduled_duration_min if zone.zone_mode == ZONE_MODE_SCHEDULED
-                    else (computed.recommended_duration_min if zone.zone_mode == ZONE_MODE_AUTO else 0.0)
-                )
+                zone.scheduled_duration_min if zone.zone_mode == ZONE_MODE_SCHEDULED
+                else (computed.recommended_duration_min if zone.zone_mode == ZONE_MODE_AUTO else 0.0)
             )
             data[zone_id] = replace(
                 computed,

@@ -66,7 +66,7 @@
       padding: 16px 8px 12px 20px;
       flex: none;
     }
-    .title { font-size: 1.15rem; font-weight: 500; flex: 1; }
+    .title { font-size: 1.5rem; font-weight: 500; flex: 1; }
     .close {
       background: none;
       border: none;
@@ -109,6 +109,10 @@
       padding: 4px 0 12px;
     }
     .pane ha-card { box-shadow: none; border: none; background: transparent; }
+    /* 24px matches HA's own gap *between* sections (hui-sections-view's
+       --ha-view-sections-row-gap) — headings only get the smaller 8px
+       card-to-card gap when they're stuck inside one section's card list. */
+    .pane hui-heading-card { display: block; margin: 18px 4px 4px; }
     .error { padding: 16px 20px; color: var(--secondary-text-color); font-size: 0.9rem; }
   `;
 
@@ -136,7 +140,8 @@
     set hass(hass) {
       this._hass = hass;
       for (const id in this._tabCards) {
-        if (this._tabCards[id]) this._tabCards[id].hass = hass;
+        const elements = this._tabCards[id];
+        if (elements) elements.forEach((el) => { el.hass = hass; });
       }
       // The zone was deleted (button press → confirmation → integration
       // reload drops its entities): its anchor entity vanishes from
@@ -153,7 +158,9 @@
 
     showDialog(payload) {
       this._payload = payload;
-      this._activeTabId = (payload.tabs[0] && payload.tabs[0].id) || null;
+      const requested = payload.initial_tab;
+      const hasRequested = requested && payload.tabs.some((t) => t.id === requested);
+      this._activeTabId = hasRequested ? requested : ((payload.tabs[0] && payload.tabs[0].id) || null);
       this._tabCards = {};
       this._open = true;
       this._render();
@@ -242,10 +249,16 @@
       try {
         if (!window.loadCardHelpers) throw new Error('loadCardHelpers unavailable');
         const helpers = await window.loadCardHelpers();
-        const card = helpers.createCardElement(tabConfig.card);
-        card.hass = this._hass;
-        pane.appendChild(card);
-        this._tabCards[tabId] = card;
+        // tabConfig.card is a flat list of card configs (heading + content, not
+        // wrapped in a vertical-stack) so each becomes its own direct child here —
+        // that's what lets our CSS reach the heading card to style its margin.
+        const cardConfigs = Array.isArray(tabConfig.card) ? tabConfig.card : [tabConfig.card];
+        const elements = cardConfigs.map((cfg) => helpers.createCardElement(cfg));
+        elements.forEach((el) => {
+          el.hass = this._hass;
+          pane.appendChild(el);
+        });
+        this._tabCards[tabId] = elements;
       } catch (err) {
         pane.insertAdjacentHTML('beforeend', '<div class="error">Impossible de charger cet onglet.</div>');
         console.error('irrisynk-zone-dialog: failed to build tab card', err);

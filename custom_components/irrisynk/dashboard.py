@@ -399,13 +399,20 @@ def _item(entity_own_names: dict[str, str], eid: str, name: str | None = None) -
     return {"entity": eid, "name": label} if label else {"entity": eid}
 
 
+def _card_with_heading(title: str, card: dict, icon: str | None = None) -> list[dict]:
+    """Extract a card's title into a separate heading card placed above it."""
+    heading: dict[str, Any] = {"type": "heading", "heading": title}
+    if icon:
+        heading["icon"] = icon
+    return [heading, card]
+
+
 _LABELS: dict[str, dict[str, str]] = {
     "fr": {
         "view_home": "Accueil",
         "view_settings": "Paramètres",
         "view_calculator": "Calculateur",
         "calc_card_title": "Calculateur débit Goutte à Goutte",
-        "calc_inputs_section": "Paramètres",
         "calc_result_section": "Résultat",
         "calc_lbl_flow_lh": "Débit goutteur (L/h)",
         "calc_lbl_dripper_spacing": "Espacement entre goutteurs",
@@ -445,6 +452,10 @@ _LABELS: dict[str, dict[str, str]] = {
         "sec_actions": "Actions",
         "sec_all_zones": "Pour toutes les zones",
         "sec_cascade": "Cascade",
+        "sec_catalog": "Catalogue",
+        "sec_custom_modes": "Modes personnalisés",
+        "sec_custom_crops": "Cultures personnalisées",
+        "sec_misc": "Divers",
         "grp_general": "Général",
         "grp_valve": "Électrovanne",
         "grp_terrain": "Terrain",
@@ -486,7 +497,6 @@ _LABELS: dict[str, dict[str, str]] = {
         "view_settings": "Settings",
         "view_calculator": "Calculator",
         "calc_card_title": "Drip Flow Calculator",
-        "calc_inputs_section": "Parameters",
         "calc_result_section": "Result",
         "calc_lbl_flow_lh": "Dripper flow rate (L/h)",
         "calc_lbl_dripper_spacing": "Dripper spacing",
@@ -526,6 +536,10 @@ _LABELS: dict[str, dict[str, str]] = {
         "sec_actions": "Actions",
         "sec_all_zones": "For all zones",
         "sec_cascade": "Cascade",
+        "sec_catalog": "Catalog",
+        "sec_custom_modes": "Custom modes",
+        "sec_custom_crops": "Custom crops",
+        "sec_misc": "Miscellaneous",
         "grp_general": "General",
         "grp_valve": "Electrovalve",
         "grp_terrain": "Terrain",
@@ -565,28 +579,28 @@ _LABELS: dict[str, dict[str, str]] = {
 }
 
 
-_BUILTIN_MODES: dict[str, list[tuple[str, float]]] = {
+_BUILTIN_MODES: dict[str, list[tuple[str, float, str]]] = {
     "fr": [
-        ("Plein champ", 1.0),
-        ("Serre Hiver", 0.5),
-        ("Serre Printemps", 0.6),
-        ("Serre Été", 0.7),
-        ("Serre Automne", 0.6),
-        ("Paillage organique léger (5cm)", 0.9),
-        ("Paillage organique moyen (10cm)", 0.8),
-        ("Paillage organique épais (15cm)", 0.7),
-        ("Toile tissée ou film plastique", 0.7),
+        ("Plein champ", 1.0, "mdi:weather-sunny"),
+        ("Serre Hiver", 0.5, "mdi:greenhouse"),
+        ("Serre Printemps", 0.6, "mdi:greenhouse"),
+        ("Serre Été", 0.7, "mdi:greenhouse"),
+        ("Serre Automne", 0.6, "mdi:greenhouse"),
+        ("Paillage organique léger (5cm)", 0.9, "mdi:layers"),
+        ("Paillage organique moyen (10cm)", 0.8, "mdi:layers"),
+        ("Paillage organique épais (15cm)", 0.7, "mdi:layers"),
+        ("Toile tissée ou film plastique", 0.7, "mdi:awning"),
     ],
     "en": [
-        ("Open field", 1.0),
-        ("Greenhouse Winter", 0.5),
-        ("Greenhouse Spring", 0.6),
-        ("Greenhouse Summer", 0.7),
-        ("Greenhouse Autumn", 0.6),
-        ("Light organic mulch (5cm)", 0.9),
-        ("Medium organic mulch (10cm)", 0.8),
-        ("Heavy organic mulch (15cm)", 0.7),
-        ("Woven cover or plastic film", 0.7),
+        ("Open field", 1.0, "mdi:weather-sunny"),
+        ("Greenhouse Winter", 0.5, "mdi:greenhouse"),
+        ("Greenhouse Spring", 0.6, "mdi:greenhouse"),
+        ("Greenhouse Summer", 0.7, "mdi:greenhouse"),
+        ("Greenhouse Autumn", 0.6, "mdi:greenhouse"),
+        ("Light organic mulch (5cm)", 0.9, "mdi:layers"),
+        ("Medium organic mulch (10cm)", 0.8, "mdi:layers"),
+        ("Heavy organic mulch (15cm)", 0.7, "mdi:layers"),
+        ("Woven cover or plastic film", 0.7, "mdi:awning"),
     ],
 }
 
@@ -1237,12 +1251,11 @@ def _meteo_cards(
 
     if not entities:
         return []
-    return [{
+    return _card_with_heading(lbl["card_weather"], {
         "type": "entities",
-        "title": lbl["card_weather"],
         "show_header_toggle": False,
         "entities": entities,
-    }]
+    })
 
 
 def _zone_order_card(
@@ -1269,7 +1282,9 @@ def _global_config_cards(
     def g(suffix: str) -> str | None:
         return _uid(uid_to_entity, f"{entry_id}_{suffix}")
 
-    entities: list[Any] = [{"type": "section", "label": lbl["sec_all_zones"]}]
+    # hui-text-row requires a non-empty "text" (empty string is falsy in JS
+    # and trips its "Name and text required" validation), hence the space.
+    entities: list[Any] = [{"type": "text", "name": lbl["sec_all_zones"], "text": " "}]
     for key in [
         "config_all_zone_mode",
         "config_all_max_duration_min",
@@ -1280,16 +1295,21 @@ def _global_config_cards(
     ]:
         if eid := g(key):
             entities.append(_item(entity_own_names, eid))
-    entities.append({"type": "divider"})
-    if eid := g("config_add_zone"):
-        entities.append(_item(entity_own_names, eid))
 
-    return [{
+    cards: list[dict] = _card_with_heading(lbl["card_config"], {
         "type": "entities",
-        "title": lbl["card_config"],
         "show_header_toggle": False,
         "entities": entities,
-    }]
+    })
+
+    if eid := g("config_add_zone"):
+        cards.append({
+            "type": "entities",
+            "show_header_toggle": False,
+            "entities": [_item(entity_own_names, eid)],
+        })
+
+    return cards
 
 
 def _telegram_cards(
@@ -1302,7 +1322,7 @@ def _telegram_cards(
     def g(suffix: str) -> str | None:
         return _uid(uid_to_entity, f"{entry_id}_{suffix}")
 
-    entities: list[Any] = [{"type": "section", "label": lbl["sec_telegram"]}]
+    entities: list[Any] = [{"type": "text", "name": lbl["sec_telegram"], "text": " "}]
     if eid := g("config_telegram_enabled"):
         entities.append(_item(entity_own_names, eid))
     if eid := g("config_telegram_chat_id"):
@@ -1312,13 +1332,12 @@ def _telegram_cards(
     if eid := g("config_telegram_notify_unavailable"):
         entities.append(_item(entity_own_names, eid))
 
-    return [{
+    return _card_with_heading(lbl["card_config"], {
         "type": "entities",
-        "title": lbl["card_config"],
         "show_header_toggle": False,
         "state_color": False,
         "entities": entities,
-    }]
+    })
 
 
 
@@ -1342,8 +1361,15 @@ def _build_zone_dialog_payload(
                 entities.append(_item(entity_own_names, eid))
         return entities
 
-    def entities_card(title: str, entities: list[Any]) -> dict:
-        return {"type": "entities", "title": title, "show_header_toggle": False, "entities": entities}
+    def entities_card(entities: list[Any]) -> dict:
+        return {"type": "entities", "show_header_toggle": False, "entities": entities}
+
+    def tab_card(title: str, entities: list[Any]) -> list[dict]:
+        # A flat list, not a vertical-stack: the popup JS renders each card as its own
+        # direct child so it can style the heading (margin-top) from the outside — a
+        # vertical-stack card would hide it inside its own shadow root.
+        # No icon: it's already shown on the tab button itself, right above.
+        return _card_with_heading(title, entities_card(entities))
 
     def sec(label: str) -> dict:
         return {"type": "section", "label": label}
@@ -1370,23 +1396,25 @@ def _build_zone_dialog_payload(
         schedule_entities.append(sec(lbl["sec_actions"]))
         schedule_entities.extend(actions_entities)
 
+    bilan_icon = "mdi:chart-line"
     balance_cards: list[dict] = []
     if balance_entities := _balance_entities(z, entity_own_names, zone_id):
-        balance_cards.append(entities_card(lbl["sec_balance"], balance_entities))
-    if history_card := _balance_history_card(z, lbl, zone_id, device_name):
-        balance_cards.append(history_card)
+        balance_cards.extend(_card_with_heading(lbl["sec_balance"], entities_card(balance_entities)))
+    if history := _balance_history_card(z, lbl, zone_id, device_name):
+        history_title, history_card = history
+        balance_cards.extend(_card_with_heading(history_title, history_card))
 
     tabs = [
         {"id": "general", "label": lbl["grp_general"], "icon": "mdi:sprinkler-variant",
-         "card": entities_card(general_label, general_entities)},
+         "card": tab_card(general_label, general_entities)},
         {"id": "programmation", "label": lbl["sec_schedule"], "icon": "mdi:calendar-clock",
-         "card": entities_card(lbl["sec_schedule"], schedule_entities)},
-        {"id": "terrain", "label": lbl["grp_terrain"], "icon": "mdi:terrain",
-         "card": entities_card(terrain_label, group_entities(terrain_keys))},
+         "card": tab_card(lbl["sec_schedule"], schedule_entities)},
+        {"id": "terrain", "label": lbl["grp_terrain"], "icon": "mdi:land-fields",
+         "card": tab_card(terrain_label, group_entities(terrain_keys))},
         {"id": "plantation", "label": lbl["grp_planting"], "icon": "mdi:sprout",
-         "card": entities_card(planting_label, group_entities(planting_keys))},
-        {"id": "bilan", "label": lbl["sec_balance"], "icon": "mdi:chart-line",
-         "card": {"type": "vertical-stack", "cards": balance_cards} if balance_cards else entities_card(lbl["sec_balance"], [])},
+         "card": tab_card(planting_label, group_entities(planting_keys))},
+        {"id": "bilan", "label": lbl["sec_balance"], "icon": bilan_icon,
+         "card": balance_cards if balance_cards else tab_card(lbl["sec_balance"], [])},
     ]
     # Watched by the popup JS: if this entity disappears from hass.states (zone
     # deleted → integration reload removes its entities), the dialog closes itself.
@@ -1413,21 +1441,52 @@ def _build_accueil_view(
     for zone_id in zone_ids:
         device_name = zone_names.get(zone_id, f"{coordinator.entry.title} – {zone_id}")
 
+        dialog_payload = _build_zone_dialog_payload(
+            entry_id, uid_to_entity, zone_id, device_name, entity_own_names, lbl,
+        )
+        def _tab_action(tab_id: str) -> dict:
+            return {
+                "action": "fire-dom-event",
+                "irrisynk_dialog": {**dialog_payload, "initial_tab": tab_id},
+            }
+
+        programmation_action = _tab_action("programmation")
+        plantation_action = _tab_action("plantation")
+        bilan_action = _tab_action("bilan")
+
         tiles: list[dict] = []
         if switch_eid := coordinator.zone_states[zone_id].switch_entity_id:
             tiles.append({"type": "tile", "entity": switch_eid, "name": device_name})
         if eid := z(zone_id, "crop"):
-            tiles.append({"type": "tile", "entity": eid, "name": lbl["sec_culture"]})
+            tiles.append({
+                "type": "tile", "entity": eid, "name": lbl["sec_culture"],
+                "tap_action": plantation_action,
+            })
         if eid := z(zone_id, "next_irrigation"):
-            tiles.append({"type": "tile", "entity": eid, "name": lbl["acc_next"]})
+            tiles.append({
+                "type": "tile", "entity": eid, "name": lbl["acc_next"],
+                "tap_action": programmation_action,
+            })
         if eid := z(zone_id, "start_time"):
-            tiles.append({"type": "tile", "entity": eid, "name": lbl["acc_scheduled"]})
+            tiles.append({
+                "type": "tile", "entity": eid, "name": lbl["acc_scheduled"],
+                "tap_action": programmation_action,
+            })
         if eid := z(zone_id, "effective_duration_min"):
-            tiles.append({"type": "tile", "entity": eid, "name": lbl["acc_duration"]})
+            tiles.append({
+                "type": "tile", "entity": eid, "name": lbl["acc_duration"],
+                "tap_action": programmation_action,
+            })
         if eid := z(zone_id, "water_need_mm"):
-            tiles.append({"type": "tile", "entity": eid, "name": lbl["acc_need"]})
+            tiles.append({
+                "type": "tile", "entity": eid, "name": lbl["acc_need"],
+                "tap_action": bilan_action,
+            })
         if eid := z(zone_id, "irrigation_today_mm"):
-            tiles.append({"type": "tile", "entity": eid, "name": lbl["acc_irrigation"]})
+            tiles.append({
+                "type": "tile", "entity": eid, "name": lbl["acc_irrigation"],
+                "tap_action": bilan_action,
+            })
         if eid := z(zone_id, "recalculate"):
             tiles.append({"type": "tile", "entity": eid, "name": lbl["btn_recalculate"]})
 
@@ -1435,20 +1494,35 @@ def _build_accueil_view(
             "type": "vertical-stack",
             "cards": [
                 {
-                    "type": "button",
-                    "name": device_name,
-                    "show_icon": False,
-                    "show_name": True,
+                    "type": "heading",
+                    "heading": device_name,
                     "tap_action": {
                         "action": "fire-dom-event",
-                        "irrisynk_dialog": _build_zone_dialog_payload(
-                            entry_id, uid_to_entity, zone_id, device_name, entity_own_names, lbl,
-                        ),
+                        "irrisynk_dialog": dialog_payload,
                     },
                 },
                 {"type": "grid", "columns": 2, "square": False, "cards": tiles},
             ],
         })
+
+    # A second (or later) column_span:1 section never reliably lands under the
+    # first one — HA's sections view uses a non-dense grid auto-flow, so once
+    # a lone right-column slot is taken, the next narrow section falls through
+    # to the next row on the left instead. Keep the right column as a single
+    # section, with each block wrapped in its own vertical-stack (same pattern
+    # as the per-zone cards) so the two stay visually grouped.
+    right_cards: list[dict] = []
+    if meteo_cards := _meteo_cards(entry_id, coordinator, uid_to_entity, zone_ids, lbl):
+        right_cards.append({"type": "vertical-stack", "cards": meteo_cards})
+    right_cards.append({
+        "type": "vertical-stack",
+        "cards": _global_config_cards(entry_id, uid_to_entity, entity_own_names, lbl),
+    })
+
+    accueil_sections = [
+        {"column_span": 2, "cards": zone_cards},
+        {"column_span": 1, "cards": right_cards},
+    ]
 
     return {
         "title": lbl["view_home"],
@@ -1456,16 +1530,7 @@ def _build_accueil_view(
         "icon": "mdi:home",
         "type": "sections",
         "max_columns": 3,
-        "sections": [
-            {"column_span": 2, "cards": zone_cards},
-            {
-                "column_span": 1,
-                "cards": (
-                    _meteo_cards(entry_id, coordinator, uid_to_entity, zone_ids, lbl)
-                    + _global_config_cards(entry_id, uid_to_entity, entity_own_names, lbl)
-                ),
-            },
-        ],
+        "sections": accueil_sections,
     }
 
 
@@ -1503,8 +1568,7 @@ def _schedule_entities(z, entity_own_names: dict[str, str], zone_id: str) -> lis
 
 def _balance_entities(z, entity_own_names: dict[str, str], zone_id: str) -> list[Any]:
     entities: list[Any] = []
-    for key in ["water_need_mm", "irrigation_today_mm", "confidence",
-                "soil_water_balance_mm", "soil_capacity_mm"]:
+    for key in ["water_need_mm", "irrigation_today_mm", "confidence", "soil_capacity_mm"]:
         if eid := z(zone_id, key):
             entities.append(_item(entity_own_names, eid))
     return entities
@@ -1519,17 +1583,18 @@ def _actions_entities(z, entity_own_names: dict[str, str], zone_id: str) -> list
     return entities
 
 
-def _balance_history_card(z, lbl: dict[str, str], zone_id: str, device_name: str) -> dict | None:
+def _balance_history_card(z, lbl: dict[str, str], zone_id: str, device_name: str) -> tuple[str, dict] | None:
     if balance_eid := z(zone_id, "soil_water_balance_mm"):
-        return {
+        title = f"{lbl['stat_balance']} J-1 – {device_name}"
+        card = {
             "type": "statistics-graph",
-            "title": f"{lbl['stat_balance']} J-1 – {device_name}",
             "entities": [balance_eid],
             "stat_types": ["mean"],
             "period": "day",
             "days_to_show": 7,
             "chart_type": "line",
         }
+        return title, card
     return None
 
 
@@ -1545,7 +1610,13 @@ def _build_parametres_view(
 ) -> dict:
     sections = [{"column_span": 1, "cards": _telegram_cards(entry_id, uid_to_entity, entity_own_names, lbl)}]
     if len(zone_ids) > 1:
-        sections.append({"column_span": 1, "cards": [_zone_order_card(zone_ids, zone_names, lbl)]})
+        sections.append({
+            "column_span": 1,
+            "cards": [
+                {"type": "heading", "heading": lbl["sec_misc"]},
+                _zone_order_card(zone_ids, zone_names, lbl),
+            ],
+        })
 
     return {
         "title": lbl["view_settings"],
@@ -1576,7 +1647,7 @@ def _build_calculateur_view(
         ("zone_width_m",      "calc_lbl_zone_width"),
     ]
 
-    entities: list[Any] = [{"type": "section", "label": lbl["calc_inputs_section"]}]
+    entities: list[Any] = []
     for key, lbl_key in input_keys:
         if eid := g(key):
             entities.append({"entity": eid, "name": lbl[lbl_key]})
@@ -1589,12 +1660,11 @@ def _build_calculateur_view(
     if result_eid := g("result_mm_h"):
         entities.append({"entity": result_eid, "name": lbl["calc_lbl_result"]})
 
-    card = {
+    cards = _card_with_heading(lbl["calc_card_title"], {
         "type": "entities",
-        "title": lbl["calc_card_title"],
         "show_header_toggle": False,
         "entities": entities,
-    }
+    })
 
     return {
         "title": lbl["view_calculator"],
@@ -1603,7 +1673,7 @@ def _build_calculateur_view(
         "type": "sections",
         "max_columns": 2,
         "sections": [
-            {"column_span": 1, "cards": [card]},
+            {"column_span": 1, "cards": cards},
         ],
     }
 
@@ -1620,41 +1690,41 @@ def _build_cult_modes_view(
         return _uid(uid_to_entity, f"{entry_id}_cult_modes_{suffix}")
 
     # --- Left column: one card per mode ---
-    mode_cards: list[dict] = []
+    custom_mode_cards: list[dict] = []
+    catalog_mode_cards: list[dict] = []
     lang = "en" if coordinator._is_english() else "fr"
 
-    # One card per built-in mode (read-only, no delete button)
-    for mode_name, et0 in _BUILTIN_MODES[lang]:
-        mode_cards.append({
-            "type": "markdown",
-            "title": mode_name,
-            "content": f"{lbl['cult_modes_et0_label']}{et0}",
-        })
-
     # One card per custom mode with its delete button
+    if coordinator.custom_cultivation_modes:
+        custom_mode_cards.append({"type": "heading", "heading": lbl["sec_custom_modes"]})
     for mode in coordinator.custom_cultivation_modes:
         delete_eid = g(f"delete_{mode.name}")
-        info_card: dict = {
-            "type": "markdown",
-            "title": mode.name,
-            "content": f"{lbl['cult_modes_et0_label']}{mode.et0_factor}",
-        }
+        card_entities: list[Any] = [
+            {
+                "type": "text",
+                "name": lbl["cult_modes_et0_label"].rstrip(" :"),
+                "text": str(mode.et0_factor),
+            },
+        ]
         if delete_eid:
-            mode_cards.append({
-                "type": "vertical-stack",
-                "cards": [
-                    info_card,
-                    {
-                        "type": "entities",
-                        "show_header_toggle": False,
-                        "entities": [
-                            {"entity": delete_eid, "name": lbl["cult_modes_delete_btn"]},
-                        ],
-                    },
-                ],
-            })
-        else:
-            mode_cards.append(info_card)
+            card_entities.append({"type": "divider"})
+            card_entities.append({"entity": delete_eid, "name": lbl["cult_modes_delete_btn"]})
+        custom_mode_cards.append({
+            "type": "entities",
+            "title": mode.name,
+            "icon": "mdi:tune",
+            "show_header_toggle": False,
+            "entities": card_entities,
+        })
+
+    # One card per built-in mode (read-only, no delete button)
+    catalog_mode_cards.append({"type": "heading", "heading": lbl["sec_catalog"]})
+    for mode_name, et0, icon in _BUILTIN_MODES[lang]:
+        catalog_mode_cards.append({
+            "type": "markdown",
+            "content": f'### <ha-icon icon="{icon}"></ha-icon> {mode_name}\n\n'
+                        f"{lbl['cult_modes_et0_label']}{et0}",
+        })
 
     # --- Right card: add form (entity names overridden for clean display) ---
     form_entities: list[Any] = []
@@ -1666,23 +1736,29 @@ def _build_cult_modes_view(
         form_entities.append({"type": "divider"})
         form_entities.append({"entity": btn_eid, "name": lbl["cult_modes_field_add"]})
 
-    form_card = {
+    form_cards = _card_with_heading(lbl["cult_modes_form_title"], {
         "type": "entities",
-        "title": lbl["cult_modes_form_title"],
         "show_header_toggle": False,
         "entities": form_entities,
-    }
+    })
+
+    # A single section for the left column: the number of columns HA actually
+    # renders is responsive (not fixed at max_columns), so 2 separate
+    # column_span:2 sections here would place differently — and sometimes
+    # break onto their own full-width row — depending on viewport width. One
+    # section with both heading groups inside avoids that entirely.
+    cult_modes_sections = [
+        {"column_span": 2, "cards": custom_mode_cards + catalog_mode_cards},
+        {"column_span": 1, "cards": form_cards},
+    ]
 
     return {
         "title": lbl["view_cult_modes"],
         "path": "modes-culture",
-        "icon": "mdi:terrain",
+        "icon": "mdi:layers-triple",
         "type": "sections",
         "max_columns": 3,
-        "sections": [
-            {"column_span": 2, "cards": mode_cards},
-            {"column_span": 1, "cards": [form_card]},
-        ],
+        "sections": cult_modes_sections,
     }
 
 
@@ -1698,7 +1774,8 @@ def _build_cultures_view(
         return _uid(uid_to_entity, f"{entry_id}_crops_{suffix}")
 
     # --- Left column ---
-    crop_cards: list[dict] = []
+    custom_crop_cards: list[dict] = []
+    catalog_crop_cards: list[dict] = []
 
     def _stage_lines(stages, label_fn, kc_lbl: str, dur_lbl: str) -> str:
         lines = []
@@ -1710,9 +1787,17 @@ def _build_cultures_view(
         return "  \n".join(lines) if lines else "*(aucun stade)*"
 
     # One card per custom crop: each stage as a delete-stage button row (no section separators)
+    if coordinator.custom_crops:
+        custom_crop_cards.append({"type": "heading", "heading": lbl["sec_custom_crops"]})
     for crop in coordinator.custom_crops:
         delete_crop_eid = g(f"delete_{crop.crop_id}")
         card_entities: list[Any] = []
+        if crop.root_depth_cm is not None:
+            card_entities.append({
+                "type": "text",
+                "name": lbl["crops_root_depth_label"].rstrip(" :"),
+                "text": f"{crop.root_depth_cm} cm",
+            })
         for stage in crop.stages:
             stage_eid = g(f"delete_stage_{crop.crop_id}_{stage.stage_id}")
             if stage_eid:
@@ -1723,16 +1808,16 @@ def _build_cultures_view(
         if delete_crop_eid:
             card_entities.append({"type": "divider"})
             card_entities.append({"entity": delete_crop_eid, "name": lbl["crops_delete_btn"]})
-        depth_suffix = f" — {crop.root_depth_cm} cm" if crop.root_depth_cm else ""
-        crop_cards.append({
+        custom_crop_cards.append({
             "type": "entities",
-            "title": f"{crop.name}{depth_suffix}",
+            "title": crop.name,
             "icon": "mdi:sprout",
             "show_header_toggle": False,
             "entities": card_entities,
         })
 
     # Built-in catalog: one card per crop, sorted alphabetically
+    catalog_crop_cards.append({"type": "heading", "heading": lbl["sec_catalog"]})
     builtin_sorted = sorted(coordinator.catalog.crops, key=lambda c: coordinator._crop_label(c))
     for crop in builtin_sorted:
         crop_label = coordinator._crop_label(crop)
@@ -1746,9 +1831,9 @@ def _build_cultures_view(
             lbl["crops_kc_label"],
             lbl["crops_duration_label"],
         )
-        crop_cards.append({
+        catalog_crop_cards.append({
             "type": "markdown",
-            "content": f'<ha-icon icon="{crop.icon}"></ha-icon> **{crop_label}**\n\n' + depth_line + stage_content,
+            "content": f'### <ha-icon icon="{crop.icon}"></ha-icon> {crop_label}\n\n' + depth_line + stage_content,
         })
 
     # --- Right column: two form cards ---
@@ -1761,12 +1846,11 @@ def _build_cultures_view(
     if btn_eid := g("create_crop"):
         create_entities.append({"type": "divider"})
         create_entities.append({"entity": btn_eid, "name": lbl["crops_field_create"]})
-    create_card = {
+    create_cards = _card_with_heading(lbl["crops_form_crop_title"], {
         "type": "entities",
-        "title": lbl["crops_form_crop_title"],
         "show_header_toggle": False,
         "entities": create_entities,
-    }
+    })
 
     # Card 2: add or edit a stage (unified form)
     edit_stage_entities: list[Any] = []
@@ -1786,12 +1870,29 @@ def _build_cultures_view(
     if save_eid := g("save_stage"):
         edit_stage_entities.append({"type": "divider"})
         edit_stage_entities.append({"entity": save_eid, "name": lbl["crops_field_save_stage"]})
-    edit_stage_card = {
+    edit_stage_cards = _card_with_heading(lbl["crops_form_edit_stage_title"], {
         "type": "entities",
-        "title": lbl["crops_form_edit_stage_title"],
         "show_header_toggle": False,
         "entities": edit_stage_entities,
-    }
+    })
+
+    # A single section for the left column: the number of columns HA actually
+    # renders is responsive (not fixed at max_columns), so 2 separate
+    # column_span:2 sections here would place differently — and sometimes
+    # break onto their own full-width row — depending on viewport width. One
+    # section with both heading groups inside avoids that entirely. Same
+    # reasoning for the right column: a single section with each form in its
+    # own vertical-stack, instead of 2 separate column_span:1 sections.
+    cultures_sections = [
+        {"column_span": 2, "cards": custom_crop_cards + catalog_crop_cards},
+        {
+            "column_span": 1,
+            "cards": [
+                {"type": "vertical-stack", "cards": create_cards},
+                {"type": "vertical-stack", "cards": edit_stage_cards},
+            ],
+        },
+    ]
 
     return {
         "title": lbl["view_crops"],
@@ -1799,10 +1900,7 @@ def _build_cultures_view(
         "icon": "mdi:sprout",
         "type": "sections",
         "max_columns": 3,
-        "sections": [
-            {"column_span": 2, "cards": crop_cards},
-            {"column_span": 1, "cards": [create_card, edit_stage_card]},
-        ],
+        "sections": cultures_sections,
     }
 
 
@@ -1844,7 +1942,6 @@ def _build_cascades_view(
 
         config_card: dict = {
             "type": "entities",
-            "title": cascade.name,
             "show_header_toggle": False,
             "state_color": False,
             "entities": card_entities,
@@ -1853,7 +1950,7 @@ def _build_cascades_view(
         # Zone-order custom card for this cascade (drag-to-reorder + × remove buttons)
         cascade_zones = [z for z in cascade.zone_ids if z in coordinator.zone_states]
 
-        cards: list[dict] = [config_card]
+        cards: list[dict] = _card_with_heading(cascade.name, config_card)
         if cascade_zones:
             # Prefer user-set name (name_by_user) then device name then zone_id
             zone_names_map = {
@@ -1884,12 +1981,11 @@ def _build_cascades_view(
         form_entities.append({"type": "divider"})
         form_entities.append({"entity": btn_eid, "name": lbl["cascade_create_btn"]})
 
-    form_card = {
+    form_cards = _card_with_heading(lbl["cascade_form_title"], {
         "type": "entities",
-        "title": lbl["cascade_form_title"],
         "show_header_toggle": False,
         "entities": form_entities,
-    }
+    })
 
     return {
         "title": lbl["view_cascades"],
@@ -1899,7 +1995,7 @@ def _build_cascades_view(
         "max_columns": 3,
         "sections": [
             {"column_span": 2, "cards": cascade_cards},
-            {"column_span": 1, "cards": [form_card]},
+            {"column_span": 1, "cards": form_cards},
         ],
     }
 
@@ -1915,6 +2011,10 @@ def _build_wiki_view(
     _entity_own_names: dict[str, str],
     lbl: dict[str, str],
 ) -> dict:
+    def split_title(card: dict) -> list[dict]:
+        rest = {k: v for k, v in card.items() if k != "title"}
+        return _card_with_heading(card["title"], rest)
+
     lang = "en" if coordinator._is_english() else "fr"
     content_card, algo_card, nav_card = _WIKI_CONTENT[lang]
     return {
@@ -1924,7 +2024,13 @@ def _build_wiki_view(
         "type": "sections",
         "max_columns": 3,
         "sections": [
-            {"column_span": 2, "cards": [content_card, algo_card]},
-            {"column_span": 1, "cards": [nav_card]},
+            {
+                "column_span": 2,
+                "cards": [
+                    {"type": "vertical-stack", "cards": split_title(content_card)},
+                    {"type": "vertical-stack", "cards": split_title(algo_card)},
+                ],
+            },
+            {"column_span": 1, "cards": split_title(nav_card)},
         ],
     }
