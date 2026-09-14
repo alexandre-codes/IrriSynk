@@ -131,6 +131,9 @@ class SchedulingMixin:
                         )
                         await self._async_stop_irrigation(zone_id)
 
+        if self.global_pause_enabled or self._is_frost_protected():
+            return
+
         current_hm = f"{now.hour:02d}:{now.minute:02d}"
 
         # 2a/2b. Cascade mode: fire or refresh times for each cascade group
@@ -286,7 +289,7 @@ class SchedulingMixin:
             "Zone %s: irrigation started — %.1f min, ends at %s",
             zone_id, duration_min, end_time.strftime("%H:%M"),
         )
-        if self.telegram_enabled and self.telegram_notify_irrigations and self.telegram_chat_id:
+        if self.telegram_notify_irrigations and (self.telegram_enabled or self.notify_ha_enabled):
             zone_name = self._zone_display_name(zone_id)
             end_hm = end_time.strftime("%H:%M")
             need_str = f"{computed.water_need_mm:.1f} mm" if computed else "?"
@@ -301,7 +304,7 @@ class SchedulingMixin:
                     f"\U0001f4a7 {zone_name} : arrosage démarré — {duration_min:.0f} min (fin à {end_hm})\n"
                     f"Besoin : {need_str} | Arrosé aujourd'hui : {irr_str}"
                 )
-            self.hass.async_create_task(self._async_send_telegram(msg))
+            self.hass.async_create_task(self._async_send_notification(msg))
 
     async def _async_stop_irrigation(self, zone_id: str) -> None:
         zone = self.zone_states[zone_id]
@@ -320,8 +323,8 @@ class SchedulingMixin:
                 break
         await self._async_save()
         await self._async_recompute_from_cache()
-        # Send Telegram after recompute so irrigation_today_mm and water_need_mm are up to date
-        if self.telegram_enabled and self.telegram_notify_irrigations and self.telegram_chat_id:
+        # Send notification after recompute so irrigation_today_mm and water_need_mm are up to date
+        if self.telegram_notify_irrigations and (self.telegram_enabled or self.notify_ha_enabled):
             zone_name = self._zone_display_name(zone_id)
             computed = (self.data or {}).get(zone_id)
             irr_str = f"{computed.irrigation_today_mm:.1f} mm" if computed else "?"
@@ -350,7 +353,7 @@ class SchedulingMixin:
                     msg = f"⚠️ {zone_name}: irrigation interrupted{lost_str} ({irr_str} applied, need: {need_str}, valve: {state_label})"
                 else:
                     msg = f"⚠️ {zone_name} : arrosage interrompu{lost_str} ({irr_str} apportés, besoin : {need_str}, électrovanne : {state_label})"
-            self.hass.async_create_task(self._async_send_telegram(msg))
+            self.hass.async_create_task(self._async_send_notification(msg))
 
     async def _async_notify_start_failed(self, zone_id: str, switch_state) -> None:
         """Alert when a zone could not start after the full retry window."""
@@ -384,12 +387,12 @@ class SchedulingMixin:
                 await result
         except Exception:  # noqa: BLE001
             pass
-        if self.telegram_enabled and self.telegram_notify_unavailable and self.telegram_chat_id:
+        if self.telegram_notify_unavailable and (self.telegram_enabled or self.notify_ha_enabled):
             if self._is_english():
                 tg_msg = f"⚠️ {zone_name}: irrigation not triggered — valve: {reason}"
             else:
                 tg_msg = f"⚠️ {zone_name} : arrosage non déclenché — électrovanne : {reason}"
-            self.hass.async_create_task(self._async_send_telegram(tg_msg))
+            self.hass.async_create_task(self._async_send_notification(tg_msg))
 
     async def _async_entity_turn_on(self, entity_id: str) -> None:
         """Turn on a switch or open a valve based on entity domain."""

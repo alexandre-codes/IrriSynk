@@ -26,7 +26,7 @@ class IrrigationStore:
     def __init__(self, hass: HomeAssistant) -> None:
         self._store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
 
-    async def async_load(self) -> tuple[dict[str, ZoneState], list[CascadeGroup], list[CustomCultivationMode], list[CustomCropDefinition], dict]:
+    async def async_load(self) -> tuple[dict[str, ZoneState], list[CascadeGroup], list[CustomCultivationMode], list[CustomCropDefinition], dict, dict]:
         """Load zone states, cascade groups, and custom cultivation modes from disk."""
         payload = await self._store.async_load() or {}
         zones = payload.get("zones", {})
@@ -128,7 +128,8 @@ class IrrigationStore:
                 root_depth_cm=int(rc.get("root_depth_cm", 50)),
             ))
         telegram = payload.get("telegram", {})
-        return result, cascades, custom_modes, custom_crops, telegram
+        global_cfg = payload.get("global", {})
+        return result, cascades, custom_modes, custom_crops, telegram, global_cfg
 
     async def async_save(
         self,
@@ -140,6 +141,11 @@ class IrrigationStore:
         telegram_chat_id: str = "",
         telegram_notify_irrigations: bool = True,
         telegram_notify_unavailable: bool = True,
+        global_pause_enabled: bool = False,
+        frost_protection_enabled: bool = False,
+        frost_threshold_c: float = 2.0,
+        notify_ha_enabled: bool = False,
+        notify_ha_service: str = "",
     ) -> None:
         """Save zone states, cascade groups, custom cultivation modes, and telegram config to disk."""
         payload = {
@@ -158,6 +164,13 @@ class IrrigationStore:
                 "chat_id": telegram_chat_id,
                 "notify_irrigations": telegram_notify_irrigations,
                 "notify_unavailable": telegram_notify_unavailable,
+            },
+            "global": {
+                "global_pause_enabled": global_pause_enabled,
+                "frost_protection_enabled": frost_protection_enabled,
+                "frost_threshold_c": frost_threshold_c,
+                "notify_ha_enabled": notify_ha_enabled,
+                "notify_ha_service": notify_ha_service,
             },
             "custom_cultivation_modes": [
                 {"name": m.name, "et0_factor": m.et0_factor}

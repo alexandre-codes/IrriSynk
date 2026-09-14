@@ -451,6 +451,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "sec_balance": "Bilan",
         "sec_actions": "Actions",
         "sec_all_zones": "Pour toutes les zones",
+        "sec_options": "Options",
         "sec_cascade": "Cascade",
         "sec_catalog": "Catalogue",
         "sec_custom_modes": "Modes personnalisés",
@@ -491,6 +492,9 @@ _LABELS: dict[str, dict[str, str]] = {
         "cascade_add_zone_btn": "Ajouter la zone",
         "cascade_enabled_label": "Activer",
         "cascade_time_label": "Heure de départ",
+        "cascade_all_title": "Pour toutes les cascades",
+        "cascade_all_enabled_label": "Activer / désactiver",
+        "cascade_all_time_label": "Heure",
     },
     "en": {
         "view_home": "Home",
@@ -535,6 +539,7 @@ _LABELS: dict[str, dict[str, str]] = {
         "sec_balance": "Balance",
         "sec_actions": "Actions",
         "sec_all_zones": "For all zones",
+        "sec_options": "Options",
         "sec_cascade": "Cascade",
         "sec_catalog": "Catalog",
         "sec_custom_modes": "Custom modes",
@@ -575,6 +580,9 @@ _LABELS: dict[str, dict[str, str]] = {
         "cascade_add_zone_btn": "Add zone",
         "cascade_enabled_label": "Activate",
         "cascade_time_label": "Start time",
+        "cascade_all_title": "For all cascades",
+        "cascade_all_enabled_label": "Enable / disable",
+        "cascade_all_time_label": "Time",
     },
 }
 
@@ -1278,13 +1286,11 @@ def _global_config_cards(
     entity_own_names: dict[str, str],
     lbl: dict[str, str],
 ) -> list[dict]:
-    """Carte Configuration pour toutes les zones (mode, valeurs par défaut, actions, ajout de zone)."""
+    """Cartes de config globale (mode, valeurs par défaut, actions) et d'ajout de zone."""
     def g(suffix: str) -> str | None:
         return _uid(uid_to_entity, f"{entry_id}_{suffix}")
 
-    # hui-text-row requires a non-empty "text" (empty string is falsy in JS
-    # and trips its "Name and text required" validation), hence the space.
-    entities: list[Any] = [{"type": "text", "name": lbl["sec_all_zones"], "text": " "}]
+    entities: list[Any] = []
     for key in [
         "config_all_zone_mode",
         "config_all_max_duration_min",
@@ -1296,20 +1302,49 @@ def _global_config_cards(
         if eid := g(key):
             entities.append(_item(entity_own_names, eid))
 
-    cards: list[dict] = _card_with_heading(lbl["card_config"], {
+    cards: list[dict] = _card_with_heading(lbl["sec_all_zones"], {
         "type": "entities",
         "show_header_toggle": False,
         "entities": entities,
     })
 
     if eid := g("config_add_zone"):
-        cards.append({
+        cards.extend(_card_with_heading(lbl["sec_options"], {
             "type": "entities",
             "show_header_toggle": False,
             "entities": [_item(entity_own_names, eid)],
-        })
+        }))
 
     return cards
+
+
+def _global_settings_cards(
+    entry_id: str,
+    uid_to_entity: dict[str, str],
+    entity_own_names: dict[str, str],
+    lbl: dict[str, str],
+) -> list[dict]:
+    """Carte Configuration (pause globale, protection gel, notifications HA) pour la vue Paramètres."""
+    def g(suffix: str) -> str | None:
+        return _uid(uid_to_entity, f"{entry_id}_{suffix}")
+
+    entities: list[Any] = []
+    for key in [
+        "config_global_pause",
+        "config_frost_protection_enabled",
+        "config_frost_threshold_c",
+        "config_notify_ha_enabled",
+        "config_notify_ha_service",
+    ]:
+        if eid := g(key):
+            entities.append(_item(entity_own_names, eid))
+
+    return _card_with_heading(lbl["card_config"], {
+        "type": "entities",
+        "show_header_toggle": False,
+        "state_color": False,
+        "entities": entities,
+    })
 
 
 def _telegram_cards(
@@ -1322,7 +1357,7 @@ def _telegram_cards(
     def g(suffix: str) -> str | None:
         return _uid(uid_to_entity, f"{entry_id}_{suffix}")
 
-    entities: list[Any] = [{"type": "text", "name": lbl["sec_telegram"], "text": " "}]
+    entities: list[Any] = []
     if eid := g("config_telegram_enabled"):
         entities.append(_item(entity_own_names, eid))
     if eid := g("config_telegram_chat_id"):
@@ -1332,7 +1367,7 @@ def _telegram_cards(
     if eid := g("config_telegram_notify_unavailable"):
         entities.append(_item(entity_own_names, eid))
 
-    return _card_with_heading(lbl["card_config"], {
+    return _card_with_heading(lbl["sec_telegram"], {
         "type": "entities",
         "show_header_toggle": False,
         "state_color": False,
@@ -1598,7 +1633,7 @@ def _balance_history_card(z, lbl: dict[str, str], zone_id: str, device_name: str
     return None
 
 
-# --- Vue Paramètres (Telegram + ordre d'affichage des zones) ---
+# --- Vue Paramètres (Configuration + Telegram + ordre d'affichage des zones) ---
 
 def _build_parametres_view(
     entry_id: str,
@@ -1608,7 +1643,11 @@ def _build_parametres_view(
     entity_own_names: dict[str, str],
     lbl: dict[str, str],
 ) -> dict:
-    sections = [{"column_span": 1, "cards": _telegram_cards(entry_id, uid_to_entity, entity_own_names, lbl)}]
+    settings_cards = (
+        _global_settings_cards(entry_id, uid_to_entity, entity_own_names, lbl)
+        + _telegram_cards(entry_id, uid_to_entity, entity_own_names, lbl)
+    )
+    sections = [{"column_span": 1, "cards": settings_cards}]
     if len(zone_ids) > 1:
         sections.append({
             "column_span": 1,
@@ -1971,6 +2010,22 @@ def _build_cascades_view(
     if not cascade_cards:
         cascade_cards = [{"type": "markdown", "content": lbl["cascade_empty"]}]
 
+    # --- Right column: bulk actions for all cascades ---
+    all_entities: list[Any] = []
+    if eid := g("all_enabled"):
+        all_entities.append(item(eid, lbl["cascade_all_enabled_label"]))
+    if eid := g("all_time"):
+        all_entities.append(item(eid, lbl["cascade_all_time_label"]))
+
+    all_cards: list[dict] = []
+    if all_entities:
+        all_cards = _card_with_heading(lbl["cascade_all_title"], {
+            "type": "entities",
+            "show_header_toggle": False,
+            "state_color": False,
+            "entities": all_entities,
+        })
+
     # --- Right column: create form ---
     form_entities: list[Any] = []
     if name_eid := g("form_name"):
@@ -1995,7 +2050,7 @@ def _build_cascades_view(
         "max_columns": 3,
         "sections": [
             {"column_span": 2, "cards": cascade_cards},
-            {"column_span": 1, "cards": form_cards},
+            {"column_span": 1, "cards": all_cards + form_cards},
         ],
     }
 

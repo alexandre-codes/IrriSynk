@@ -542,6 +542,9 @@
       "cascade_enabled": {
         "name": "Cascade enabled"
       },
+      "cascade_all_enabled": {
+        "name": "All cascades enabled"
+      },
       "telegram_enabled": {
         "name": "Enable alerts"
       },
@@ -550,6 +553,15 @@
       },
       "telegram_notify_unavailable": {
         "name": "Unavailable devices"
+      },
+      "global_pause": {
+        "name": "Global pause"
+      },
+      "frost_protection_enabled": {
+        "name": "Frost protection"
+      },
+      "notify_ha_enabled": {
+        "name": "Home Assistant notifications"
       }
     },
     "select": {
@@ -639,6 +651,9 @@
       "telegram_chat_id": {
         "name": "Telegram Chat"
       },
+      "notify_ha_service": {
+        "name": "Notification service"
+      },
       "cascade_zone_selector": {
         "name": "Zone to add"
       }
@@ -646,6 +661,9 @@
     "number": {
       "scheduled_duration_min": {
         "name": "Scheduled duration"
+      },
+      "frost_threshold_c": {
+        "name": "Frost threshold"
       },
       "all_max_duration_min": {
         "name": "Max duration"
@@ -720,6 +738,9 @@
       },
       "cascade_time": {
         "name": "Cascade start time"
+      },
+      "cascade_all_time": {
+        "name": "All cascades start time"
       }
     },
     "date": {

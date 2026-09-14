@@ -118,6 +118,24 @@ class CascadeMixin:
         await self._async_save()
         self._notify_entities()
 
+    async def async_set_all_cascades_enabled(self, enabled: bool) -> None:
+        for cascade in self.cascades:
+            cascade.enabled = enabled
+            if not enabled:
+                self._cascade_active.pop(cascade.cascade_id, None)
+            elif cascade.start_time:
+                self._write_cascade_times(self._cascade_valid_zones(cascade), cascade.start_time)
+        await self._async_save()
+        self._notify_entities()
+
+    async def async_set_all_cascades_time(self, time_str: str | None) -> None:
+        for cascade in self.cascades:
+            cascade.start_time = time_str
+            if cascade.enabled and time_str:
+                self._write_cascade_times(self._cascade_valid_zones(cascade), time_str)
+        await self._async_save()
+        self._notify_entities()
+
     async def async_set_cascade_form_name(self, name: str) -> None:
         self.forms.cascade_form_name = name
         self._notify_entities()

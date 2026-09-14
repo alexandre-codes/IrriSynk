@@ -12,7 +12,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
 from .coordinator import IrrigationCoordinator
-from .entities.base import IrrigationCascadeEntity, IrrigationConfigEntity
+from .entities.base import IrrigationCascadeEntity, IrrigationCascadesEntity, IrrigationConfigEntity
 
 try:
     from homeassistant.helpers import entity_registry as er
@@ -38,6 +38,10 @@ async def async_setup_entry(
         TelegramEnabledSwitch(coordinator),
         TelegramNotifyIrrigationsSwitch(coordinator),
         TelegramNotifyUnavailableSwitch(coordinator),
+        CascadeAllEnabledSwitch(coordinator),
+        GlobalPauseSwitch(coordinator),
+        FrostProtectionSwitch(coordinator),
+        NotifyHaEnabledSwitch(coordinator),
     ]
     for cascade in coordinator.cascades:
         entities.append(CascadeGroupSwitch(coordinator, cascade.cascade_id))
@@ -64,6 +68,86 @@ class CascadeGroupSwitch(IrrigationCascadeEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs) -> None:
         await self.coordinator.async_set_cascade_enabled(self.cascade_id, False)
+
+
+class CascadeAllEnabledSwitch(IrrigationCascadesEntity, SwitchEntity):
+    """Switch enabling/disabling all cascade groups at once."""
+
+    _attr_translation_key = "cascade_all_enabled"
+    _attr_icon = "mdi:water-sync"
+
+    def __init__(self, coordinator: IrrigationCoordinator) -> None:
+        super().__init__(coordinator, "all_enabled")
+
+    @property
+    def is_on(self) -> bool:
+        return bool(self.coordinator.cascades) and all(c.enabled for c in self.coordinator.cascades)
+
+    async def async_turn_on(self, **kwargs) -> None:
+        await self.coordinator.async_set_all_cascades_enabled(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        await self.coordinator.async_set_all_cascades_enabled(False)
+
+
+class GlobalPauseSwitch(IrrigationConfigEntity, SwitchEntity):
+    """Switch suspending all automatic irrigation (zones and cascades) at once."""
+
+    _attr_translation_key = "global_pause"
+    _attr_icon = "mdi:pause-circle-outline"
+
+    def __init__(self, coordinator: IrrigationCoordinator) -> None:
+        super().__init__(coordinator, "global_pause")
+
+    @property
+    def is_on(self) -> bool:
+        return self.coordinator.global_pause_enabled
+
+    async def async_turn_on(self, **kwargs) -> None:
+        await self.coordinator.async_set_global_pause(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        await self.coordinator.async_set_global_pause(False)
+
+
+class FrostProtectionSwitch(IrrigationConfigEntity, SwitchEntity):
+    """Switch enabling automatic irrigation cancellation below the frost threshold."""
+
+    _attr_translation_key = "frost_protection_enabled"
+    _attr_icon = "mdi:snowflake-alert"
+
+    def __init__(self, coordinator: IrrigationCoordinator) -> None:
+        super().__init__(coordinator, "frost_protection_enabled")
+
+    @property
+    def is_on(self) -> bool:
+        return self.coordinator.frost_protection_enabled
+
+    async def async_turn_on(self, **kwargs) -> None:
+        await self.coordinator.async_set_frost_protection_enabled(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        await self.coordinator.async_set_frost_protection_enabled(False)
+
+
+class NotifyHaEnabledSwitch(IrrigationConfigEntity, SwitchEntity):
+    """Switch enabling alerts through a native Home Assistant notify service."""
+
+    _attr_translation_key = "notify_ha_enabled"
+    _attr_icon = "mdi:bell-ring-outline"
+
+    def __init__(self, coordinator: IrrigationCoordinator) -> None:
+        super().__init__(coordinator, "notify_ha_enabled")
+
+    @property
+    def is_on(self) -> bool:
+        return self.coordinator.notify_ha_enabled
+
+    async def async_turn_on(self, **kwargs) -> None:
+        await self.coordinator.async_set_notify_ha_enabled(True)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        await self.coordinator.async_set_notify_ha_enabled(False)
 
 
 class TelegramEnabledSwitch(IrrigationConfigEntity, SwitchEntity):

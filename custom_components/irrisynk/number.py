@@ -40,6 +40,7 @@ async def async_setup_entry(
         CalcLineSpacingNumber(coordinator),
         CalcLineLengthNumber(coordinator),
         CalcZoneWidthNumber(coordinator),
+        FrostThresholdNumber(coordinator),
     ]
     for zone_id in coordinator.zone_states:
         entities.extend(
@@ -53,6 +54,28 @@ async def async_setup_entry(
             ]
         )
     async_add_entities(entities)
+
+
+class FrostThresholdNumber(IrrigationConfigEntity, NumberEntity):
+    """Temperature threshold below which automatic irrigation is cancelled for the day."""
+
+    _attr_translation_key = "frost_threshold_c"
+    _attr_icon = "mdi:snowflake-thermometer"
+    _attr_mode = NumberMode.BOX
+    _attr_native_min_value = -10
+    _attr_native_max_value = 15
+    _attr_native_step = 0.5
+    _attr_native_unit_of_measurement = "°C"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "frost_threshold_c")
+
+    @property
+    def native_value(self) -> float:
+        return self.coordinator.frost_threshold_c
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.async_set_frost_threshold(value)
 
 
 class ZoneMaxDurationNumber(IrrigationZoneEntity, NumberEntity):

@@ -584,6 +584,9 @@
       "telegram_chat_id": {
         "name": "Chat Telegram"
       },
+      "notify_ha_service": {
+        "name": "Service de notification"
+      },
       "cascade_zone_selector": {
         "name": "Zone à ajouter"
       }
@@ -599,6 +602,9 @@
       },
       "cascade_time": {
         "name": "Heure de départ cascade"
+      },
+      "cascade_all_time": {
+        "name": "Heure de départ de toutes les cascades"
       }
     },
     "text": {
@@ -719,6 +725,9 @@
       "cascade_enabled": {
         "name": "Cascade activée"
       },
+      "cascade_all_enabled": {
+        "name": "Toutes les cascades activées"
+      },
       "telegram_enabled": {
         "name": "Activer les alertes"
       },
@@ -727,9 +736,21 @@
       },
       "telegram_notify_unavailable": {
         "name": "Appareils indisponibles"
+      },
+      "global_pause": {
+        "name": "Pause globale"
+      },
+      "frost_protection_enabled": {
+        "name": "Protection gel"
+      },
+      "notify_ha_enabled": {
+        "name": "Notifications Home Assistant"
       }
     },
     "number": {
+      "frost_threshold_c": {
+        "name": "Seuil de gel"
+      },
       "scheduled_duration_min": {
         "name": "Durée programmée"
       },

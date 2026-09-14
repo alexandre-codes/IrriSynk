@@ -36,7 +36,7 @@ async def async_setup_entry(
         old_eid = ent_reg.async_get_entity_id("time", DOMAIN, old_uid)
         if old_eid:
             ent_reg.async_remove(old_eid)
-    entities: list[TimeEntity] = [CascadeFormTimeEntity(coordinator)]
+    entities: list[TimeEntity] = [CascadeFormTimeEntity(coordinator), CascadeAllTimeEntity(coordinator)]
     for cascade in coordinator.cascades:
         entities.append(CascadeGroupTimeEntity(coordinator, cascade.cascade_id))
     entities += [
@@ -71,6 +71,34 @@ class CascadeGroupTimeEntity(IrrigationCascadeEntity, TimeEntity):
     async def async_set_value(self, value: time) -> None:
         await self.coordinator.async_set_cascade_time(
             self.cascade_id, f"{value.hour:02d}:{value.minute:02d}"
+        )
+
+
+class CascadeAllTimeEntity(IrrigationCascadesEntity, TimeEntity):
+    """Start time applied to all cascade groups at once."""
+
+    _attr_translation_key = "cascade_all_time"
+    _attr_icon = "mdi:clock-outline"
+
+    def __init__(self, coordinator: IrrigationCoordinator) -> None:
+        super().__init__(coordinator, "all_time")
+
+    @property
+    def native_value(self) -> time | None:
+        if not self.coordinator.cascades:
+            return None
+        val = self.coordinator.cascades[0].start_time
+        if not val:
+            return None
+        try:
+            h, m = val.split(":")
+            return time(int(h), int(m))
+        except (ValueError, AttributeError):
+            return None
+
+    async def async_set_value(self, value: time) -> None:
+        await self.coordinator.async_set_all_cascades_time(
+            f"{value.hour:02d}:{value.minute:02d}"
         )
 
 

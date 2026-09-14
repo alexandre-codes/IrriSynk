@@ -25,6 +25,7 @@ async def async_setup_entry(
     entities: list[SelectEntity] = [
         AllZonesModeSelect(coordinator),
         TelegramChatIdSelect(coordinator),
+        NotifyHaServiceSelect(coordinator),
         CropForStageSelect(coordinator),
         EditStageCropSelect(coordinator),
         EditStageSelect(coordinator),
@@ -387,6 +388,33 @@ class TelegramChatIdSelect(IrrigationConfigEntity, SelectEntity):
 
     async def async_select_option(self, option: str) -> None:
         await self.coordinator.async_set_telegram_chat_id(option)
+        self.async_write_ha_state()
+
+
+class NotifyHaServiceSelect(IrrigationConfigEntity, SelectEntity):
+    """Select any Home Assistant notify service as a generic notification target."""
+
+    _attr_translation_key = "notify_ha_service"
+    _attr_icon = "mdi:bell-cog-outline"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "notify_ha_service")
+
+    @property
+    def options(self) -> list[str]:
+        targets = [f"notify.{svc}" for svc in sorted(self.hass.services.async_services().get("notify", {}))]
+        current = self.coordinator.notify_ha_service
+        if current and current not in targets:
+            targets.insert(0, current)
+        return targets or [""]
+
+    @property
+    def current_option(self) -> str | None:
+        current = self.coordinator.notify_ha_service
+        return current if current in self.options else None
+
+    async def async_select_option(self, option: str) -> None:
+        await self.coordinator.async_set_notify_ha_service(option)
         self.async_write_ha_state()
 
 

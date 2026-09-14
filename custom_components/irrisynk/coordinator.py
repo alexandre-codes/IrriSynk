@@ -134,12 +134,19 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
         self.telegram_chat_id: str = ""
         self.telegram_notify_irrigations: bool = True
         self.telegram_notify_unavailable: bool = True
+        # Global config (persisted)
+        self.global_pause_enabled: bool = False
+        self.frost_protection_enabled: bool = False
+        self.frost_threshold_c: float = 2.0
+        self.notify_ha_enabled: bool = False
+        self.notify_ha_service: str = ""
+        self.forecast_tmin_c: float | None = None  # cached from last weather refresh
         # Transient form state (not persisted — reset to defaults on restart)
         self.forms: FormState = FormState()
 
     async def async_config_entry_first_refresh(self) -> None:
         """Load persisted state then register listeners."""
-        loaded, cascades, custom_modes, custom_crops, telegram = await self.store.async_load()
+        loaded, cascades, custom_modes, custom_crops, telegram, global_cfg = await self.store.async_load()
         self.cascades = cascades
         self.custom_cultivation_modes = custom_modes
         self.custom_crops = custom_crops
@@ -147,6 +154,11 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
         self.telegram_chat_id = telegram.get("chat_id", "")
         self.telegram_notify_irrigations = telegram.get("notify_irrigations", True)
         self.telegram_notify_unavailable = telegram.get("notify_unavailable", True)
+        self.global_pause_enabled = global_cfg.get("global_pause_enabled", False)
+        self.frost_protection_enabled = global_cfg.get("frost_protection_enabled", False)
+        self.frost_threshold_c = global_cfg.get("frost_threshold_c", 2.0)
+        self.notify_ha_enabled = global_cfg.get("notify_ha_enabled", False)
+        self.notify_ha_service = global_cfg.get("notify_ha_service", "")
         zones = self.entry.options.get(CONF_ZONES, self.entry.data[CONF_ZONES])
         active = set(zones)
         if loaded:
@@ -432,6 +444,9 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
             else:
                 et0_mm = self._compute_et0_forecast(attrs, forecast)
             rain_mm = self._get_rain_mm(forecast)
+            self.forecast_tmin_c = self._get_today_forecast_tmin(attrs, forecast)
+        else:
+            self.forecast_tmin_c = None
 
         self.et0_mm = round(et0_mm, 2)
         self.rain_mm_today = round(rain_mm, 2)
@@ -565,6 +580,14 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
             pressure_hpa=pressure_hpa, cloud_cover_pct=cloud_cover_pct,
             latitude_deg=self._get_latitude(), doy=doy,
         )
+
+    def _get_today_forecast_tmin(self, attrs: dict, forecast: list[dict]) -> float | None:
+        """Return today's forecast low (°C) for frost protection, or None if unavailable."""
+        fc0 = self._get_today_forecast_entry(forecast)
+        val = fc0.get("templow")
+        if val is None:
+            val = attrs.get("templow")
+        return _safe_float(val)
 
     def _get_rain_mm(self, forecast: list[dict]) -> float:
         """Return today's forecast rain.
@@ -777,6 +800,11 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
             telegram_chat_id=self.telegram_chat_id,
             telegram_notify_irrigations=self.telegram_notify_irrigations,
             telegram_notify_unavailable=self.telegram_notify_unavailable,
+            global_pause_enabled=self.global_pause_enabled,
+            frost_protection_enabled=self.frost_protection_enabled,
+            frost_threshold_c=self.frost_threshold_c,
+            notify_ha_enabled=self.notify_ha_enabled,
+            notify_ha_service=self.notify_ha_service,
         )
 
     async def async_set_telegram_enabled(self, enabled: bool) -> None:
@@ -797,6 +825,38 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
         self.telegram_notify_unavailable = enabled
         await self._async_save()
         self._notify_entities()
+
+    async def async_set_global_pause(self, enabled: bool) -> None:
+        self.global_pause_enabled = enabled
+        await self._async_save()
+        self._notify_entities()
+
+    async def async_set_frost_protection_enabled(self, enabled: bool) -> None:
+        self.frost_protection_enabled = enabled
+        await self._async_save()
+        self._notify_entities()
+
+    async def async_set_frost_threshold(self, value: float) -> None:
+        self.frost_threshold_c = value
+        await self._async_save()
+        self._notify_entities()
+
+    async def async_set_notify_ha_enabled(self, enabled: bool) -> None:
+        self.notify_ha_enabled = enabled
+        await self._async_save()
+        self._notify_entities()
+
+    async def async_set_notify_ha_service(self, service: str) -> None:
+        self.notify_ha_service = service
+        await self._async_save()
+
+    def _is_frost_protected(self) -> bool:
+        """Whether the forecast low is at/below the configured frost threshold."""
+        return (
+            self.frost_protection_enabled
+            and self.forecast_tmin_c is not None
+            and self.forecast_tmin_c <= self.frost_threshold_c
+        )
 
     def _zone_display_name(self, zone_id: str) -> str:
         from homeassistant.helpers import device_registry as dr
@@ -829,6 +889,24 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
                 )
         except Exception as exc:
             _LOGGER.warning("IrriSynk: Telegram notification failed: %s", exc)
+
+    async def _async_send_ha_notify(self, message: str) -> None:
+        if not self.notify_ha_enabled or not self.notify_ha_service:
+            return
+        service_name = self.notify_ha_service
+        if service_name.startswith("notify."):
+            service_name = service_name[len("notify."):]
+        try:
+            await self.hass.services.async_call(
+                "notify", service_name, {"message": message}, blocking=False
+            )
+        except Exception as exc:
+            _LOGGER.warning("IrriSynk: HA notification failed: %s", exc)
+
+    async def _async_send_notification(self, message: str) -> None:
+        """Send an alert through every enabled notification channel."""
+        await self._async_send_telegram(message)
+        await self._async_send_ha_notify(message)
 
     async def _async_save_and_refresh(self) -> None:
         await self._async_save()
