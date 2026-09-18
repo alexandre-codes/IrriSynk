@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from custom_components.irrisynk.models.domain import ZoneState
 from custom_components.irrisynk.store import IrrigationStore, STORAGE_KEY
 
 _MINIMAL_ZONE_RAW: dict[str, Any] = {
@@ -23,13 +24,14 @@ def _seed(hass_storage: dict[str, Any], data: dict[str, Any]) -> None:
 
 async def test_load_empty_store_returns_defaults(hass, hass_storage):
     store = IrrigationStore(hass)
-    zones, cascades, modes, crops, telegram, global_cfg = await store.async_load()
+    zones, cascades, modes, crops, telegram, global_cfg, cascade_active = await store.async_load()
     assert zones == {}
     assert cascades == []
     assert modes == []
     assert crops == []
     assert telegram == {}
     assert global_cfg == {}
+    assert cascade_active == {}
 
 
 async def test_legacy_greenhouse_mode_is_migrated(hass, hass_storage):
@@ -98,7 +100,7 @@ async def test_save_then_load_round_trip_preserves_global_config(hass, hass_stor
         notify_ha_enabled=True,
         notify_ha_service="notify.mobile_app_test",
     )
-    _, _, _, _, _, global_cfg = await store.async_load()
+    _, _, _, _, _, global_cfg, _ = await store.async_load()
     assert global_cfg == {
         "global_pause_enabled": True,
         "frost_protection_enabled": True,
@@ -106,3 +108,19 @@ async def test_save_then_load_round_trip_preserves_global_config(hass, hass_stor
         "notify_ha_enabled": True,
         "notify_ha_service": "notify.mobile_app_test",
     }
+
+
+async def test_cascade_active_round_trips_and_drops_unknown_zones(hass, hass_storage):
+    store = IrrigationStore(hass)
+    zone = ZoneState(
+        zone_id="zone_1", crop_id="tomate", stage_mode="manual",
+        cultivation_mode="plein_champ", manual_stage_id="s1",
+    )
+    await store.async_save(
+        zones={"zone_1": zone},
+        cascade_active={"cascade_1": ["zone_1", "zone_ghost"], "cascade_2": []},
+    )
+    *_, cascade_active = await store.async_load()
+    # zone_ghost isn't a known zone so it's dropped from the sequence; cascade_2's
+    # already-empty sequence is dropped entirely rather than kept as a stale entry.
+    assert cascade_active == {"cascade_1": ["zone_1"]}

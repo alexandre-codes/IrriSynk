@@ -45,6 +45,7 @@ async def async_get_config_entry_diagnostics(
             "telegram_notify_unavailable": coordinator.telegram_notify_unavailable,
             "notify_ha_enabled": coordinator.notify_ha_enabled,
             "active_irrigations": sorted(coordinator._active_irrigations),
+            "pending_stop": coordinator._pending_stop,
             "cascade_active": coordinator._cascade_active,
         },
         "zones": _jsonable(

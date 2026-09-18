@@ -112,6 +112,7 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
         self._switch_unsubs: list = []  # unsubscribe callbacks for switch state listeners
         self._active_irrigations: set[str] = set()
         self._pending_start: dict[str, int] = {}  # zone_id → retries remaining
+        self._pending_stop: dict[str, int] = {}  # zone_id → retries remaining to confirm valve closed
         self._zones_irrigation_reset: set[str] = set()  # force irrigation_today_mm=0 for one cycle
         # Cascade irrigation — multiple named groups
         self.cascades: list = []  # list[CascadeGroup] — loaded in async_config_entry_first_refresh
@@ -146,7 +147,9 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
 
     async def async_config_entry_first_refresh(self) -> None:
         """Load persisted state then register listeners."""
-        loaded, cascades, custom_modes, custom_crops, telegram, global_cfg = await self.store.async_load()
+        loaded, cascades, custom_modes, custom_crops, telegram, global_cfg, cascade_active = (
+            await self.store.async_load()
+        )
         self.cascades = cascades
         self.custom_cultivation_modes = custom_modes
         self.custom_crops = custom_crops
@@ -184,6 +187,14 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
                     et0_correction_factor=DEFAULT_ET0_CORRECTION_OPEN_FIELD,
                     switch_entity_id=switch_entity_id or None,
                 )
+        valid_cascade_ids = {c.cascade_id for c in self.cascades}
+        self._cascade_active = {
+            cascade_id: [z for z in zone_ids if z in self.zone_states]
+            for cascade_id, zone_ids in cascade_active.items()
+            if cascade_id in valid_cascade_ids
+        }
+        self._cascade_active = {cid: zids for cid, zids in self._cascade_active.items() if zids}
+
         await super().async_config_entry_first_refresh()
         await self._async_recover_irrigation_state()
         self._register_listeners()
@@ -805,6 +816,7 @@ class IrrigationCoordinator(SchedulingMixin, CascadeMixin, CropsMixin, DataUpdat
             frost_threshold_c=self.frost_threshold_c,
             notify_ha_enabled=self.notify_ha_enabled,
             notify_ha_service=self.notify_ha_service,
+            cascade_active=self._cascade_active,
         )
 
     async def async_set_telegram_enabled(self, enabled: bool) -> None:

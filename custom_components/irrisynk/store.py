@@ -26,7 +26,7 @@ class IrrigationStore:
     def __init__(self, hass: HomeAssistant) -> None:
         self._store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
 
-    async def async_load(self) -> tuple[dict[str, ZoneState], list[CascadeGroup], list[CustomCultivationMode], list[CustomCropDefinition], dict, dict]:
+    async def async_load(self) -> tuple[dict[str, ZoneState], list[CascadeGroup], list[CustomCultivationMode], list[CustomCropDefinition], dict, dict, dict[str, list[str]]]:
         """Load zone states, cascade groups, and custom cultivation modes from disk."""
         payload = await self._store.async_load() or {}
         zones = payload.get("zones", {})
@@ -129,7 +129,16 @@ class IrrigationStore:
             ))
         telegram = payload.get("telegram", {})
         global_cfg = payload.get("global", {})
-        return result, cascades, custom_modes, custom_crops, telegram, global_cfg
+        # Cascade progress (which zone sequence is mid-run) — filtered to zones that
+        # still exist, so a stale entry can't resurrect a deleted zone.
+        raw_cascade_active = payload.get("cascade_active", {})
+        cascade_active: dict[str, list[str]] = {
+            cascade_id: [z for z in zone_ids if z in zones]
+            for cascade_id, zone_ids in raw_cascade_active.items()
+            if isinstance(zone_ids, list)
+        }
+        cascade_active = {cid: zids for cid, zids in cascade_active.items() if zids}
+        return result, cascades, custom_modes, custom_crops, telegram, global_cfg, cascade_active
 
     async def async_save(
         self,
@@ -146,9 +155,11 @@ class IrrigationStore:
         frost_threshold_c: float = 2.0,
         notify_ha_enabled: bool = False,
         notify_ha_service: str = "",
+        cascade_active: dict[str, list[str]] | None = None,
     ) -> None:
         """Save zone states, cascade groups, custom cultivation modes, and telegram config to disk."""
         payload = {
+            "cascade_active": cascade_active or {},
             "cascades": [
                 {
                     "cascade_id": c.cascade_id,

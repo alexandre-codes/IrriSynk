@@ -25,25 +25,25 @@ class SchedulingMixin:
     """Mixin providing irrigation scheduling logic."""
 
     async def _async_recover_irrigation_state(self) -> None:
-        """On startup: stop overdue irrigations, re-arm active ones."""
+        """On startup: stop overdue irrigations (advancing their cascade if any), re-arm active ones."""
         now = dt_util.now()
-        changed = False
-        for zone_id, zone in self.zone_states.items():
+        for zone_id, zone in list(self.zone_states.items()):
             if not zone.irrigation_end_time:
                 continue
             try:
                 end_time = datetime.fromisoformat(zone.irrigation_end_time)
             except ValueError:
                 self.zone_states[zone_id] = replace(zone, irrigation_end_time=None)
-                changed = True
+                await self._async_save()
                 continue
 
             if now >= end_time:
-                _LOGGER.info(f"Zone {zone_id}: irrigation overdue after reboot — turning off")
-                if zone.switch_entity_id:
-                    await self._async_entity_turn_off(zone.switch_entity_id)
-                self.zone_states[zone_id] = replace(zone, irrigation_end_time=None)
-                changed = True
+                _LOGGER.info(f"Zone {zone_id}: irrigation overdue after reboot — stopping")
+                # Route through _async_stop_irrigation (not a bare turn_off) so the
+                # cascade sequence — restored from disk just before this runs — advances
+                # to the next zone instead of silently dying here.
+                self._active_irrigations.add(zone_id)
+                await self._async_stop_irrigation(zone_id)
             else:
                 remaining = (end_time - now).total_seconds() / 60
                 _LOGGER.info(
@@ -52,9 +52,6 @@ class SchedulingMixin:
                     zone_id, remaining,
                 )
                 self._active_irrigations.add(zone_id)
-
-        if changed:
-            await self._async_save()
 
     async def _async_on_switch_state_change(self, event) -> None:
         """React immediately when a monitored switch goes off/unavailable."""
@@ -113,6 +110,25 @@ class SchedulingMixin:
 
     async def _async_check_schedule(self, now: datetime) -> None:
         """Fire every minute — stop overdue irrigations then start scheduled ones."""
+        # 0. Confirm valves we told to close actually did; retry (or alert) if not.
+        # Runs unconditionally — a stuck-open valve matters even during a pause.
+        for zone_id in list(self._pending_stop.keys()):
+            zone = self.zone_states.get(zone_id)
+            if zone is None or not zone.switch_entity_id or not self._entity_is_on(zone.switch_entity_id):
+                self._pending_stop.pop(zone_id, None)
+                continue
+            retries = self._pending_stop[zone_id]
+            if retries <= 0:
+                self._pending_stop.pop(zone_id, None)
+                await self._async_notify_stop_failed(zone_id)
+            else:
+                self._pending_stop[zone_id] = retries - 1
+                _LOGGER.warning(
+                    "Zone %s: switch %s still ON after stop command — retrying (%d attempts left)",
+                    zone_id, zone.switch_entity_id, retries,
+                )
+                await self._async_entity_turn_off(zone.switch_entity_id)
+
         # 1. Stop any irrigation whose end time has passed or whose switch is actually off
         for zone_id, zone in list(self.zone_states.items()):
             if zone.irrigation_end_time and zone_id in self._active_irrigations:
@@ -314,6 +330,9 @@ class SchedulingMixin:
         planned_end_iso = zone.irrigation_end_time
         if zone.switch_entity_id:
             await self._async_entity_turn_off(zone.switch_entity_id)
+            # turn_off above is fire-and-forget (blocking=False) — confirm on the next
+            # ticks that the valve actually closed, and retry if it didn't.
+            self._pending_stop.setdefault(zone_id, _MAX_START_RETRIES)
         self._active_irrigations.discard(zone_id)
         self.zone_states[zone_id] = replace(zone, irrigation_end_time=None)
         _LOGGER.info(f"Zone {zone_id}: irrigation stopped (switch was {'on' if switch_was_on else 'off/unavailable'})")
@@ -392,6 +411,44 @@ class SchedulingMixin:
                 tg_msg = f"⚠️ {zone_name}: irrigation not triggered — valve: {reason}"
             else:
                 tg_msg = f"⚠️ {zone_name} : arrosage non déclenché — électrovanne : {reason}"
+            self.hass.async_create_task(self._async_send_notification(tg_msg))
+
+    async def _async_notify_stop_failed(self, zone_id: str) -> None:
+        """Alert when a valve never confirmed closing after the stop command."""
+        from homeassistant.components.persistent_notification import async_create as pn_create  # type: ignore[import]
+        zone = self.zone_states.get(zone_id)
+        switch_id = zone.switch_entity_id if zone else zone_id
+        zone_name = self._zone_display_name(zone_id)
+        notif_id = f"{DOMAIN}_stop_failed_{zone_id}"
+        if self._is_english():
+            title = "IrriSynk – Valve did not close"
+            msg = (
+                f"IrriSynk told zone **{zone_name}** to stop, but valve `{switch_id}` "
+                f"still reports ON after {_MAX_START_RETRIES} retries.\n\n"
+                f"It may still be watering — check it manually."
+            )
+        else:
+            title = "IrriSynk – Électrovanne non fermée"
+            msg = (
+                f"IrriSynk a demandé l'arrêt de la zone **{zone_name}**, mais l'électrovanne "
+                f"`{switch_id}` indique toujours ON après {_MAX_START_RETRIES} tentatives.\n\n"
+                f"Elle est peut-être toujours en train d'arroser — vérifie-la manuellement."
+            )
+        _LOGGER.error(
+            "IrriSynk: zone %s — switch %s still ON %d min after stop command",
+            zone_id, switch_id, _MAX_START_RETRIES,
+        )
+        try:
+            result = pn_create(self.hass, msg, title=title, notification_id=notif_id)
+            if hasattr(result, "__await__"):
+                await result
+        except Exception:  # noqa: BLE001
+            pass
+        if self.telegram_notify_unavailable and (self.telegram_enabled or self.notify_ha_enabled):
+            if self._is_english():
+                tg_msg = f"\U0001f6a8 {zone_name}: valve still ON after stop command — check manually!"
+            else:
+                tg_msg = f"\U0001f6a8 {zone_name} : électrovanne toujours ouverte après la commande d'arrêt — vérifie manuellement !"
             self.hass.async_create_task(self._async_send_notification(tg_msg))
 
     async def _async_entity_turn_on(self, entity_id: str) -> None:
